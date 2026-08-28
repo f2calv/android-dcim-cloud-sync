@@ -1,0 +1,20 @@
+name: ci
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore:
+      - "preview/**"
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+# Deny all by default; each job grants only the scopes it needs.
+permissions: {}
+
+jobs:
+  # The build job will be added after Visual Studio creates the MAUI solution.
+  lint:
+    permissions:
+      contents: read
+    uses: f2calv/gha-workflows/.github/workflows/lint.yml@v1

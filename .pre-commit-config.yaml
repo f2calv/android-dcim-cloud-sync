@@ -1,0 +1,49 @@
+# Shared pre-commit configuration, kept as close to identical as possible across every
+# f2calv repository. Linting is run manually and by CI:
+#   pre-commit run --all-files
+#   pre-commit autoupdate
+#
+# The per-commit hook is deliberately not installed because its fixed interpreter
+# startup cost is noticeable for small commits. `pre-commit install` installs the
+# cheaper once-per-push hook instead.
+default_install_hook_types: [pre-push]
+
+# Prefer a per-hook exclusion when only one hook is noisy so other checks still run.
+exclude: |
+  (?x)^(
+    \.editorconfig|
+    Directory\.Packages\.props
+  )$
+
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v6.0.0
+  hooks:
+  # Structural validation
+  - id: check-xml
+  - id: check-yaml
+    args: [--allow-multiple-documents]
+  - id: check-toml
+  - id: check-merge-conflict
+  - id: check-case-conflict
+  - id: check-added-large-files
+    args: [--maxkb=150]
+  # Whitespace hygiene; line endings are owned by .gitattributes.
+  - id: end-of-file-fixer
+    # Visual Studio and VS Code may drop the trailing newline from JSON on format.
+    exclude: |
+      (?x)(
+        appsettings.*\.json$|
+        launchSettings\.json$|
+        ^\.vscode/.*\.json$
+      )
+  - id: trailing-whitespace
+- repo: https://gitlab.com/bmares/check-json5
+  rev: v1.0.1
+  hooks:
+  - id: check-json5
+- repo: https://github.com/igorshubovych/markdownlint-cli
+  rev: v0.49.1
+  hooks:
+  - id: markdownlint
+    args: ["--disable", "MD013", "--disable", "MD034", "--disable", "MD060", "--"]
