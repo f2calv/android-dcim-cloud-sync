@@ -1,13 +1,15 @@
-﻿using DcimCloudSync.Models;
-using DcimCloudSync.PageModels;
+﻿namespace DcimCloudSync.Pages;
 
-namespace DcimCloudSync.Pages;
-
-public partial class MainPage : ContentPage
+/// <summary>
+/// Displays the static application status and learning surface.
+/// </summary>
+public sealed partial class MainPage : ContentPage
 {
-    public MainPage(MainPageModel model)
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MainPage"/> class.
+    /// </summary>
+    public MainPage()
     {
         InitializeComponent();
-        BindingContext = model;
     }
 }
