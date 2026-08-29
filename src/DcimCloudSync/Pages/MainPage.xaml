@@ -2,34 +2,104 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="DcimCloudSync.Pages.MainPage"
-             Title="Status">
+             Title="Diagnostic">
 
     <ScrollView>
         <VerticalStackLayout
             Padding="24,32"
-            Spacing="20">
+            Spacing="20"
+            MaximumWidthRequest="720"
+            HorizontalOptions="Fill">
             <Label
                 Style="{StaticResource PageTitleLabelStyle}"
-                Text="Android DCIM Cloud Sync"
+                Text="Pixel 7 MediaStore diagnostic"
                 SemanticProperties.HeadingLevel="Level1" />
             <Label
                 Style="{StaticResource IntroLabelStyle}"
-                Text="A minimal .NET MAUI shell for learning and local Android development." />
+                Text="This temporary, foreground-only diagnostic checks visual-media access and compares original-byte open paths for a known synthetic fixture set. It does not back up, upload, delete, or retain media." />
             <Label
                 Margin="0,12,0,0"
                 Style="{StaticResource SectionTitleLabelStyle}"
-                Text="Current status"
+                Text="Visual-media access"
                 SemanticProperties.HeadingLevel="Level2" />
             <Label
-                Text="Backup features are not implemented. This app does not discover media, store credentials, upload files, or run background work."
-                SemanticProperties.Description="Current status. Backup features are not implemented." />
+                Text="Use the controls below to request only the access needed for a diagnostic scenario. Android may offer broad access or user-selected media. Partial access is never reported as full access." />
+            <Label
+                x:Name="AccessSummaryLabel"
+                Text="Access has not been refreshed. Use one of the visible controls to inspect or request access."
+                SemanticProperties.Description="Sanitized visual-media access summary." />
+            <VerticalStackLayout Spacing="12">
+                <Button
+                    x:Name="RequestImagesButton"
+                    Text="Request images"
+                    Clicked="OnRequestImagesClicked"
+                    HorizontalOptions="Fill"
+                    SemanticProperties.Description="Request broad image access for the synthetic diagnostic." />
+                <Button
+                    x:Name="RequestVideosButton"
+                    Text="Request videos"
+                    Clicked="OnRequestVideosClicked"
+                    HorizontalOptions="Fill"
+                    SemanticProperties.Description="Request broad video access for the synthetic diagnostic." />
+                <Button
+                    x:Name="RequestAllOrManageSelectionButton"
+                    Text="Request all"
+                    Clicked="OnRequestAllOrManageSelectionClicked"
+                    HorizontalOptions="Fill"
+                    SemanticProperties.Description="Request image and video access, or manage the selected-media set when supported." />
+                <Button
+                    x:Name="RefreshAccessButton"
+                    Text="Refresh access"
+                    Clicked="OnRefreshAccessClicked"
+                    HorizontalOptions="Fill"
+                    SemanticProperties.Description="Refresh the sanitized access summary without displaying a permission prompt." />
+            </VerticalStackLayout>
             <Label
                 Margin="0,12,0,0"
                 Style="{StaticResource SectionTitleLabelStyle}"
-                Text="Learning surface"
+                Text="Diagnostic run"
                 SemanticProperties.HeadingLevel="Level2" />
             <Label
-                Text="Use this page to explore XAML layout, centralized theme-aware styles, and Android debugging before product features are added." />
+                Text="Place only the documented synthetic fixtures on the device. Run starts discovery and byte comparison from this explicit foreground action. Cancel applies only to the current run." />
+            <Button
+                x:Name="RunDiagnosticButton"
+                Text="Run diagnostic"
+                Clicked="OnRunDiagnosticClicked"
+                HorizontalOptions="Fill"
+                SemanticProperties.Description="Run the foreground diagnostic against the synthetic fixture set." />
+            <Button
+                x:Name="CancelButton"
+                Text="Cancel current run"
+                Clicked="OnCancelClicked"
+                HorizontalOptions="Fill"
+                IsEnabled="False"
+                SemanticProperties.Description="Cancel only the diagnostic run currently in progress." />
+            <ActivityIndicator
+                x:Name="BusyIndicator"
+                IsRunning="False"
+                IsVisible="False"
+                HorizontalOptions="Start"
+                SemanticProperties.Description="A diagnostic page operation is in progress." />
+            <Label
+                x:Name="OperationStatusLabel"
+                Text="Ready. No diagnostic has run."
+                SemanticProperties.Description="Current diagnostic operation status." />
+            <Label
+                Margin="0,12,0,0"
+                Style="{StaticResource SectionTitleLabelStyle}"
+                Text="Sanitized result"
+                SemanticProperties.HeadingLevel="Level2" />
+            <Label
+                Text="The read-only output contains neutral fixture identifiers, aggregate counts, result codes, byte counts, digests, descriptor traits, and durations. It never displays media names, paths, volumes, content URIs, media metadata, bytes, or exception details." />
+            <Editor
+                x:Name="ResultEditor"
+                Text="No diagnostic result is available."
+                IsReadOnly="True"
+                AutoSize="Disabled"
+                HeightRequest="420"
+                FontAutoScalingEnabled="True"
+                FontSize="16"
+                SemanticProperties.Description="Read-only sanitized diagnostic result records." />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

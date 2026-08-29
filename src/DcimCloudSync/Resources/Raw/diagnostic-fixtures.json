@@ -1,0 +1,125 @@
+{
+  "manifestVersion": 1,
+  "fixtureSetVersion": "pixel7-mediastore-v1",
+  "fixtures": [
+    {
+      "id": "jpeg-dcim-nested-v1",
+      "displayName": "dcs-diag-v1-jpeg-dcim-nested.jpg",
+      "mediaKind": "image",
+      "expectedRelativePlacement": "DCIM/DcimCloudSyncDiagnostic/Nested/",
+      "expectedMimeType": "image/jpeg",
+      "expectedByteCount": 28927,
+      "expectedSha256": "e3995fd06e2a28149171c8faa8d79ea18337d09343cc9af15f4b27884537d778",
+      "selectedForLimitedAccess": true,
+      "expectedVisibility": {
+        "full": true,
+        "imagesOnly": true,
+        "videosOnly": false,
+        "selectedOnly": true,
+        "denied": false
+      }
+    },
+    {
+      "id": "avc-dcim-v1",
+      "displayName": "dcs-diag-v1-avc-dcim.mp4",
+      "mediaKind": "video",
+      "expectedRelativePlacement": "DCIM/DcimCloudSyncDiagnostic/",
+      "expectedMimeType": "video/mp4",
+      "expectedByteCount": 3050312,
+      "expectedSha256": "34c1151eb001583c063b7b1a187c68343fe7cd3fe424168ed9818794286d189f",
+      "selectedForLimitedAccess": false,
+      "expectedVisibility": {
+        "full": true,
+        "imagesOnly": false,
+        "videosOnly": true,
+        "selectedOnly": false,
+        "denied": false
+      }
+    },
+    {
+      "id": "hevc-main10-dcim-v1",
+      "displayName": "dcs-diag-v1-hevc10-dcim.mp4",
+      "mediaKind": "video",
+      "expectedRelativePlacement": "DCIM/DcimCloudSyncDiagnostic/",
+      "expectedMimeType": "video/mp4",
+      "expectedByteCount": 513642,
+      "expectedSha256": "752c8d8da6d63a4204f3caeea9f5d1119264fe2907a4bd643c636e3f7c6b545f",
+      "selectedForLimitedAccess": true,
+      "expectedVisibility": {
+        "full": true,
+        "imagesOnly": false,
+        "videosOnly": true,
+        "selectedOnly": true,
+        "denied": false
+      }
+    },
+    {
+      "id": "avc-large-cancellation-dcim-v1",
+      "displayName": "dcs-diag-v1-cancel-large-dcim.mp4",
+      "mediaKind": "video",
+      "expectedRelativePlacement": "DCIM/DcimCloudSyncDiagnostic/",
+      "expectedMimeType": "video/mp4",
+      "expectedByteCount": 547603109,
+      "expectedSha256": "5c02bd3610e5d43e84ad95d19dbdab2319e78c2c4e75e601159b067ad995a007",
+      "selectedForLimitedAccess": false,
+      "expectedVisibility": {
+        "full": true,
+        "imagesOnly": false,
+        "videosOnly": true,
+        "selectedOnly": false,
+        "denied": false
+      }
+    },
+    {
+      "id": "jpeg-pictures-control-v1",
+      "displayName": "dcs-diag-v1-jpeg-pictures-control.jpg",
+      "mediaKind": "image",
+      "expectedRelativePlacement": "Pictures/DcimCloudSyncDiagnostic/",
+      "expectedMimeType": "image/jpeg",
+      "expectedByteCount": 28927,
+      "expectedSha256": "e3995fd06e2a28149171c8faa8d79ea18337d09343cc9af15f4b27884537d778",
+      "selectedForLimitedAccess": false,
+      "expectedVisibility": {
+        "full": true,
+        "imagesOnly": true,
+        "videosOnly": false,
+        "selectedOnly": false,
+        "denied": false
+      }
+    },
+    {
+      "id": "avc-movies-control-v1",
+      "displayName": "dcs-diag-v1-avc-movies-control.mp4",
+      "mediaKind": "video",
+      "expectedRelativePlacement": "Movies/DcimCloudSyncDiagnostic/",
+      "expectedMimeType": "video/mp4",
+      "expectedByteCount": 3050312,
+      "expectedSha256": "34c1151eb001583c063b7b1a187c68343fe7cd3fe424168ed9818794286d189f",
+      "selectedForLimitedAccess": false,
+      "expectedVisibility": {
+        "full": true,
+        "imagesOnly": false,
+        "videosOnly": true,
+        "selectedOnly": false,
+        "denied": false
+      }
+    },
+    {
+      "id": "jpeg-dcim-like-control-v1",
+      "displayName": "dcs-diag-v1-jpeg-dcim-like-control.jpg",
+      "mediaKind": "image",
+      "expectedRelativePlacement": "DCIM-like/DcimCloudSyncDiagnostic/",
+      "expectedMimeType": "image/jpeg",
+      "expectedByteCount": 28927,
+      "expectedSha256": "e3995fd06e2a28149171c8faa8d79ea18337d09343cc9af15f4b27884537d778",
+      "selectedForLimitedAccess": false,
+      "expectedVisibility": {
+        "full": true,
+        "imagesOnly": true,
+        "videosOnly": false,
+        "selectedOnly": false,
+        "denied": false
+      }
+    }
+  ]
+}

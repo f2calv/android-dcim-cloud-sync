@@ -1,4 +1,8 @@
-﻿namespace DcimCloudSync;
+﻿using DcimCloudSync.Diagnostics;
+using DcimCloudSync.Pages;
+using DcimCloudSync.Platforms.Android.Diagnostics;
+
+namespace DcimCloudSync;
 
 /// <summary>
 /// Configures and creates the MAUI application host.
@@ -13,6 +17,8 @@ public static class MauiProgram
     {
         var builder = MauiApp.CreateBuilder();
         builder.UseMauiApp<App>();
+        builder.Services.AddTransient<IPixel7MediaStoreDiagnostic, AndroidPixel7MediaStoreDiagnostic>();
+        builder.Services.AddTransient<MainPage>();
 
 #if DEBUG
         builder.Logging.AddDebug();
