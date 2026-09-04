@@ -29,7 +29,7 @@ Detailed conventions live under `.github/instructions/` and are applied by file 
 | `configuration.instructions.md` | Configuration files and models | Public defaults, secret storage and validation |
 | `dotnet.instructions.md` | Project and solution files | .NET 10, `.slnx`, central build properties and packages |
 | `github-actions.instructions.md` | GitHub Actions | Workflow style, permissions, Android signing and secret safety |
-| `documentation.instructions.md` | `**/*.md` | README synchronization, privacy documentation and Mermaid diagrams |
+| `documentation.instructions.md` | `**/*.md` | README consistency, SEO structure and Mermaid diagrams |
 
 ## Copilot Workflow
 
@@ -62,6 +62,15 @@ Detailed conventions live under `.github/instructions/` and are applied by file 
 - Never log access tokens, SAS query strings, media contents, full local paths, or personally identifying filenames. Prefer counts, durations, provider-neutral result codes, and redacted identifiers.
 - Request the minimum Android permissions required. Do not add `MANAGE_EXTERNAL_STORAGE` without explicit approval and documented justification.
 - Use synthetic test media and placeholder cloud endpoints. Never copy personal DCIM content into the repository.
+
+### Privacy Documentation
+
+- Keep the root README synchronized with implemented features, supported Android versions, permissions, configuration, provider support and development prerequisites.
+- Document every Android permission and why it is required.
+- State where credentials and backup state are stored and what data leaves the device.
+- Document destructive behavior, retention, conflict handling and deletion semantics before enabling those features.
+- Keep the security policy aligned with supported releases and the repository's private reporting mechanism.
+- Never include screenshots of personal media, real device paths, filenames or EXIF data.
 
 ## Repository Structure
 
