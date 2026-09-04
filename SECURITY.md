@@ -1,7 +1,4 @@
----
-title: Security Policy
-description: Vulnerability reporting and credential-handling policy for Android DCIM Cloud Sync
----
+# Security Policy
 
 ## Supported Versions
 

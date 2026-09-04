@@ -1,8 +1,3 @@
----
-title: Android DCIM Cloud Sync
-description: Planned privacy-focused Android DCIM backup and a temporary synthetic MediaStore diagnostic, built with .NET 10 and .NET MAUI
----
-
 # Android DCIM Cloud Sync
 
 ## Overview

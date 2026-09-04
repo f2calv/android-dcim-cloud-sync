@@ -1,8 +1,3 @@
----
-title: DcimCloudSync Android Application
-description: Project reference for the .NET MAUI Android host and temporary synthetic Pixel 7 MediaStore diagnostic
----
-
 # DcimCloudSync Android Application
 
 ## Purpose
