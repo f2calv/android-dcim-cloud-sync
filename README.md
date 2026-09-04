@@ -3,6 +3,8 @@ title: Android DCIM Cloud Sync
 description: Planned privacy-focused Android DCIM backup and a temporary synthetic MediaStore diagnostic, built with .NET 10 and .NET MAUI
 ---
 
+# Android DCIM Cloud Sync
+
 ## Overview
 
 Android DCIM Cloud Sync is a planned open-source Android application for copying user-approved photos and videos from an Android device's DCIM collection to cloud storage. Azure Blob Storage is the first planned provider, and a Pixel 7 is the initial physical-device target. Future provider contracts must not make application and domain code depend directly on Azure SDK types.

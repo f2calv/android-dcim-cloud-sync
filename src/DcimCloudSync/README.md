@@ -3,6 +3,8 @@ title: DcimCloudSync Android Application
 description: Project reference for the .NET MAUI Android host and temporary synthetic Pixel 7 MediaStore diagnostic
 ---
 
+# DcimCloudSync Android Application
+
 ## Purpose
 
 `DcimCloudSync` is the Android .NET MAUI host, UI composition root, and Android platform boundary for Android DCIM Cloud Sync. It currently hosts a temporary foreground diagnostic for gathering synthetic Pixel 7 MediaStore evidence before production backup contracts are designed.
