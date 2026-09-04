@@ -23,7 +23,7 @@ Detailed conventions live under `.github/instructions/` and are applied by file 
 
 | File | Applies to | Covers |
 | --- | --- | --- |
-| `csharp.instructions.md` | `**/*.cs` | C# style, async code, logging, memory use and documentation |
+| `csharp.instructions.md` | `**/*.cs` | C# / .NET style, XML docs, logging, performance, Web API |
 | `csharp.testing.instructions.md` | `**/*Tests/**/*.cs` | Unit, integration and device-test conventions |
 | `maui-android.instructions.md` | MAUI and Android files | Media access, permissions, background work and secure storage |
 | `configuration.instructions.md` | Configuration files and models | Public defaults, secret storage and validation |

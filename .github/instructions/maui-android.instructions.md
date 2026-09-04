@@ -11,6 +11,8 @@ applyTo: '**/*.cs,**/*.xaml,**/AndroidManifest.xml'
 - Keep Android APIs behind an interface and place implementations under `Platforms/Android` or an Android-specific project.
 - Keep view code focused on rendering, navigation and user interaction. Backup orchestration and provider calls belong in services.
 - Dispatch only UI updates to the main thread. Discovery, hashing, persistence and upload work must stay off it.
+- Do not retain Android `Activity`, `Context`, view or page instances in singleton services.
+- Use `ConfigureAwait(false)` only in provider-neutral library code that does not touch MAUI UI state. UI and lifecycle code must resume through the appropriate dispatcher.
 
 ## Media Access and Permissions
 
