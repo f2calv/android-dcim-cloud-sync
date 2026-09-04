@@ -28,7 +28,7 @@ Detailed conventions live under `.github/instructions/` and are applied by file 
 | `maui-android.instructions.md` | MAUI and Android files | Media access, permissions, background work and secure storage |
 | `configuration.instructions.md` | Configuration files and models | Public defaults, secret storage and validation |
 | `dotnet.instructions.md` | Project and solution files | .NET 10, `.slnx`, central build properties and packages |
-| `github-actions.instructions.md` | GitHub Actions | Workflow style, permissions, Android signing and secret safety |
+| `github-actions.instructions.md` | GitHub Actions | Workflow style, permissions, YAML, security and GitVersion |
 | `documentation.instructions.md` | `**/*.md` | README consistency, SEO structure and Mermaid diagrams |
 
 ## Copilot Workflow
@@ -62,6 +62,19 @@ Detailed conventions live under `.github/instructions/` and are applied by file 
 - Never log access tokens, SAS query strings, media contents, full local paths, or personally identifying filenames. Prefer counts, durations, provider-neutral result codes, and redacted identifiers.
 - Request the minimum Android permissions required. Do not add `MANAGE_EXTERNAL_STORAGE` without explicit approval and documented justification.
 - Use synthetic test media and placeholder cloud endpoints. Never copy personal DCIM content into the repository.
+
+### Android CI and Release Builds
+
+Beyond the shared conventions in `github-actions.instructions.md`:
+
+- Keep the bootstrap CI lint-only until Visual Studio creates the solution and the required .NET MAUI workload is known.
+- After scaffolding, restore the declared workloads and build the whole solution before producing Android artifacts.
+- Do not publish, sign, or upload an APK or Android App Bundle from a fork pull request.
+- Keep keystores and passwords in approved secret storage. Reconstruct temporary signing files only for trusted release jobs and remove them before the job ends.
+- Upload only intended build artifacts. Never upload local configuration, logs containing media identifiers, or files copied from a device.
+- Do not grant cloud identity permissions to lint, unit-test, or untrusted pull-request jobs.
+- Prefer short-lived federated identity for Azure automation over stored client secrets.
+- Keep unsigned validation builds separate from trusted release-signing jobs.
 
 ### Privacy Documentation
 
