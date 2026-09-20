@@ -1,5 +1,7 @@
 # Android DCIM Cloud Sync
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=f2calv_android-dcim-cloud-sync&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=f2calv_android-dcim-cloud-sync)
+
 Android DCIM Cloud Sync is a planned open-source Android application for copying user-approved photos and videos from an Android device's DCIM collection to cloud storage. Azure Blob Storage is the first planned provider, and a Pixel 7 is the initial physical-device target. Future provider contracts must not make application and domain code depend directly on Azure SDK types.
 
 The repository now contains a Visual Studio 2026 .NET 10 MAUI application reduced to an Android-only static Shell page. The root solution and centralized SDK, build, and package files provide a stable local build entry point.
