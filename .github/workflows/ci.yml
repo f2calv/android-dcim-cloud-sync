@@ -3,18 +3,28 @@ name: ci
 on:
   workflow_dispatch:
   push:
-    branches-ignore:
-      - "preview/**"
+    branches: [main]
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 # Deny all by default; each job grants only the scopes it needs.
 permissions: {}
 
 jobs:
-  # The build job will be added after Visual Studio creates the MAUI solution.
   lint:
     permissions:
       contents: read
     uses: f2calv/gha-workflows/.github/workflows/lint.yml@v1
+
+  versioning:
+    permissions:
+      contents: read
+    uses: f2calv/gha-workflows/.github/workflows/gha-release-versioning.yml@v1
+    with:
+      tag-prefix: ''
+      tag-and-release: false
