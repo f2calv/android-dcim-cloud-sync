@@ -5,6 +5,6 @@
 
   <ItemGroup>
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.12" />
-    <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.101" />
+    <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.110" />
   </ItemGroup>
 </Project>
