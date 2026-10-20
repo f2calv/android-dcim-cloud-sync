@@ -1,76 +1,54 @@
----
-title: DcimCloudSync Android Application
-description: Project reference for the static .NET MAUI Android host and local validation baseline
----
+# DcimCloudSync
 
-## Purpose
+The Android-only .NET MAUI application project for Android DCIM Cloud Sync. It provides a static
+status screen for local UI and Android development, not a working media backup client.
 
-`DcimCloudSync` is the Android .NET MAUI host, UI composition root, and Android platform boundary for Android DCIM Cloud Sync. The project currently provides a minimal local development surface for learning MAUI and validating the Android host.
+## Usage
 
-## Current Implementation
+Follow the [root development instructions](../../README.md#local-development) from the repository
+root. On launch, the single **Status** page explains that backup functionality is absent.
+The screen uses a scroll view, theme-aware styles and semantic heading labels; it has no buttons,
+bound view model, media picker or account setup.
 
-The application contains one static, accessible Shell page. It has no media discovery, upload, provider implementation, persistence, authentication, background work, resume, deduplication, or deletion behavior. The page does not bind to a view model or execute product operations.
+## Application Composition
 
-## Target and Identity
+| Source contract | Responsibility |
+| --- | --- |
+| [`MauiProgram`](MauiProgram.cs) | Creates the MAUI host; adds debug logging in Debug builds only |
+| [`App`](App.xaml.cs) | Creates a window containing the application shell |
+| [`AppShell`](AppShell.xaml.cs) | Single-page shell with its flyout disabled; [XAML](AppShell.xaml) sets the `main` route |
+| [`MainPage`](Pages/MainPage.xaml.cs) | Initializes the static [status-page XAML](Pages/MainPage.xaml) |
 
-* Target framework: `net10.0-android`
-* Minimum Android API level: 33 (Android 13)
-* Current workload-owned target API level: 36
-* Application ID: `io.github.f2calv.androiddcimcloudsync`
-* Initial physical-device target: Pixel 7
+There are no registered product services or project references. No provider-neutral API, Azure
+adapter, media-access service, database or scheduler exists.
 
-The application ID is permanent and must not be changed casually. The .NET Android workload owns the target API level, so release planning must recheck it against current platform and Google Play requirements.
+## Platform and Permissions
 
-## Android Backup and Permissions
+The [project definition](DcimCloudSync.csproj) targets `net10.0-android` with minimum Android API 33
+(Android 13). It does not set a target SDK API explicitly; that is resolved by the installed Android
+workload. There are no iOS, macOS or Windows targets.
 
-Android application-data backup is disabled with `android:allowBackup="false"`. The current shell has no credentials or product state. Any future persistence requires a separate review of Android backup and device-transfer protections.
+The [manifest](Platforms/Android/AndroidManifest.xml) disables application-data backup
+(`android:allowBackup="false"`) and cleartext traffic (`android:usesCleartextTraffic="false"`).
+`INTERNET` and `ACCESS_NETWORK_STATE` are the only declared permissions. The current page uses
+neither; it does not request media access or inspect scoped storage.
 
-The manifest declares only two permissions:
+No foreground service, scheduled background job, notification flow, boot receiver or media discovery
+is implemented. Closing or restarting the app cannot resume a backup because no queue or backup
+state exists. There is no local or remote deletion behavior.
 
-* `android.permission.INTERNET` permits future network communication, although the static shell makes no network requests
-* `android.permission.ACCESS_NETWORK_STATE` permits future connectivity checks, although the static shell does not inspect network state
+## Configuration and Dependencies
 
-No media, location, notification, foreground-service, boot, or broad storage permission is declared.
+There is no runtime configuration file, authentication flow, secret storage or destination setting.
+Do not supply cloud credentials to this shell. Its packaged resources consist of UI styles, icons
+and a splash screen.
 
-## Services
+The [central package versions](../../Directory.Packages.props) supply both direct dependencies:
 
-No product service is registered. `MauiProgram` configures only the MAUI host and debug logging for Debug builds. Media access, backup orchestration, cloud providers, persistence, identity, scheduling, and deletion remain future concerns.
+| Package | Version | Use |
+| --- | --- | --- |
+| `Microsoft.Maui.Controls` | `10.0.110` | MAUI application, Shell and XAML controls |
+| `Microsoft.Extensions.Logging.Debug` | `10.0.12` | Debug-build logging provider |
 
-## Configuration and Secrets
-
-The project has no application configuration file and consumes no runtime secret. Every asset packaged into an APK or Android App Bundle must be treated as public.
-
-The future Azure provider must remain compatible with an existing Blob container and support separate configurable destination prefixes for JPG and MP4 media. The container and prefix selections are non-secret configuration concerns, but no real container name, prefix, endpoint, account identifier, path, SAS value, or token belongs in tracked files or logs.
-
-## NuGet Dependencies
-
-Project package references are versionless. Root `Directory.Packages.props` centrally supplies these versions:
-
-| Package                              | Version    |
-| ------------------------------------ | ---------- |
-| `Microsoft.Extensions.Logging.Debug` | `10.0.11`  |
-| `Microsoft.Maui.Controls`            | `10.0.100` |
-
-## Project References
-
-The project has no project references. Provider-neutral core contracts and an Azure provider are planned architectural boundaries, not implemented projects.
-
-## Retained Resources
-
-The project retains the scaffold icon, foreground icon, splash screen, Android host colors, and a reduced theme-aware palette. These resources keep the shell buildable but are temporary. They do not represent final branding or a completed accessibility review.
-
-## Local Validation
-
-Run validation from the repository root with the stable .NET 10 SDK selected by `global.json`. The .NET MAUI Android workload must already be available. If workload restore requests installation or elevation, stop and review that change rather than installing silently.
-
-```powershell
-dotnet --version
-dotnet sln .\DcimCloudSync.slnx list
-dotnet workload restore .\DcimCloudSync.slnx
-dotnet restore .\DcimCloudSync.slnx
-dotnet build .\DcimCloudSync.slnx --configuration Debug --no-restore -p:AndroidKeyStore=false -p:AndroidBuildApplicationPackage=false
-dotnet build .\DcimCloudSync.slnx --configuration Release --no-restore -p:AndroidKeyStore=false -p:AndroidBuildApplicationPackage=false
-dotnet list .\src\DcimCloudSync\DcimCloudSync.csproj package --vulnerable --include-transitive --no-restore
-```
-
-These commands do not run tests, publish, install or launch the application, contact an emulator or physical device, invoke ADB, sign for release, or deploy. Visual Studio 2026 deployment to a Pixel 7 over USB or wireless debugging remains a separate manual developer action.
+The project is not packable as a NuGet library. There are no test projects in this repository;
+device behavior and accessibility require separate interactive validation.
