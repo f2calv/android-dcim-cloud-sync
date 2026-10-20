@@ -137,4 +137,4 @@ signed-release capability is implied by the local shell.
 
 ## License
 
-This project is released into the public domain under [The Unlicense](LICENSE).
+This project is released under the [MIT License](LICENSE).
