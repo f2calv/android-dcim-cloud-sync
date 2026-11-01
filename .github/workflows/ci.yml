@@ -31,7 +31,7 @@ jobs:
   #Unsigned bundle build; Play publication is enabled separately once signing secrets exist.
   build:
     needs: [versioning]
-    uses: f2calv/gha-workflows/.github/workflows/deploy-maui-android.yml@f2calv/2026-10-maui-android-workflow
+    uses: f2calv/gha-workflows/.github/workflows/deploy-maui-android.yml@v1
     permissions:
       contents: read
     with:
