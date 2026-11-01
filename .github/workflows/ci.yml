@@ -28,9 +28,19 @@ jobs:
       tag-prefix: ''
       tag-and-release: false
 
-  #Tags the commit only; the Android build and Play publication are not wired into CI yet.
+  #Unsigned bundle build; Play publication is enabled separately once signing secrets exist.
+  build:
+    needs: [versioning]
+    uses: f2calv/gha-workflows/.github/workflows/deploy-maui-android.yml@f2calv/2026-10-maui-android-workflow
+    permissions:
+      contents: read
+    with:
+      project: src/DcimCloudSync/DcimCloudSync.csproj
+      app-display-version: ${{ format('{0}.{1}.{2}', needs.versioning.outputs.major, needs.versioning.outputs.minor, needs.versioning.outputs.patch) }}
+      app-version-code: ${{ github.run_number }}
+
   release:
-    needs: [lint, versioning]
+    needs: [lint, versioning, build]
     if: needs.versioning.outputs.release-exists == 'false'
       && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     uses: f2calv/gha-workflows/.github/workflows/gha-release-versioning.yml@v1
