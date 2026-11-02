@@ -30,20 +30,26 @@ repos:
     args: [--maxkb=150]
   # Whitespace hygiene; line endings are owned by .gitattributes.
   - id: end-of-file-fixer
-    # Visual Studio and VS Code may drop the trailing newline from JSON on format.
-    exclude: |
-      (?x)(
-        appsettings.*\.json$|
-        launchSettings\.json$|
-        ^\.vscode/.*\.json$
-      )
   - id: trailing-whitespace
 - repo: https://gitlab.com/bmares/check-json5
   rev: v1.0.1
   hooks:
   - id: check-json5
+- repo: https://github.com/rbubley/mirrors-prettier
+  rev: v3.9.10
+  hooks:
+  #JSON formatting; indentation and line endings come from .editorconfig. Tool-written
+  #manifests and lockfiles are left to the tools that generate them.
+  - id: prettier
+    types_or: [json]
+    exclude: |
+      (?x)(
+        (^|/)devcontainer-lock\.json$|
+        (^|/)package-lock\.json$|
+        (^|/)\.config/dotnet-tools\.json$
+      )
 - repo: https://github.com/igorshubovych/markdownlint-cli
-  rev: v0.49.1
+  rev: v0.50.0
   hooks:
   - id: markdownlint
     args: ["--disable", "MD013", "--disable", "MD034", "--disable", "MD060", "--"]

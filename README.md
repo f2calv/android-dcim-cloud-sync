@@ -1,140 +1,57 @@
 # Android DCIM Cloud Sync
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=f2calv_android-dcim-cloud-sync&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=f2calv_android-dcim-cloud-sync)
+Android DCIM Cloud Sync is a .NET 10 MAUI Android learning scaffold for a photo and video backup
+application. It currently displays a static status page; it does not back up or synchronize media.
 
-Android DCIM Cloud Sync is a planned open-source Android application for copying user-approved photos and videos from an Android device's DCIM collection to cloud storage. Azure Blob Storage is the first planned provider, and a Pixel 7 is the initial physical-device target. Future provider contracts must not make application and domain code depend directly on Azure SDK types.
+## Current Application
 
-The repository now contains a Visual Studio 2026 .NET 10 MAUI application reduced to an Android-only static Shell page. The root solution and centralized SDK, build, and package files provide a stable local build entry point.
+The Android 13-or-later app opens one scrollable **Status** page describing the current implementation
+and its XAML learning surface. There are no backup controls, account screens or configuration forms.
+Media discovery, uploads, cloud providers, authentication, persistence, background scheduling,
+resume, deduplication and deletion are not implemented. Azure Blob Storage is not a usable destination
+in this checkout.
 
-> [!IMPORTANT]
-> Media discovery, upload, persistence, authentication, background work, resume, deduplication, and deletion are not implemented. The current application is a learning and local-development shell only.
+The [application project](src/DcimCloudSync/README.md) documents its host, dependencies, manifest
+and platform constraints. It is the repository's only delivery unit; there are no provider or test
+projects.
 
-## Current Implementation
+## Local Development
 
-The current baseline provides:
+Use a stable .NET SDK compatible with `global.json` (`10.0.400`, with `latestFeature` roll-forward
+and prereleases disabled), the .NET MAUI Android workload and its matching Android SDK/JDK.
+Visual Studio 2026 with MAUI/Android tooling is the repository's interactive development path.
+No Azure account or cloud resources are needed.
 
-* One static, accessible MAUI Shell page with no bound data or product services
-* An Android-only `net10.0-android` application with a minimum Android API level of 33
-* The permanent application ID `io.github.f2calv.androiddcimcloudsync`
-* Android application-data backup disabled with `android:allowBackup="false"`
-* Root `DcimCloudSync.slnx`, `global.json`, `Directory.Build.props`, and `Directory.Packages.props` build entry points
-
-The retained icon, splash screen, and color palette come from the scaffold and are temporary. They are not final product branding.
-
-## Motivation
-
-This project is intentionally small and focused so it can serve as a practical way to learn .NET MAUI while solving a real mobile backup problem.
-
-Transferring a large Android DCIM collection to a computer over USB can be unreliable. Managed photo services provide convenient automatic synchronization, but some download and export workflows may not return files with every original EXIF field intact, including geolocation metadata. Original-quality photos and increasingly large videos can also make general-purpose photo-service storage comparatively expensive for long-term retention.
-
-Object storage provides a different trade-off. Uploading the original file bytes to cloud storage can preserve the source media and its embedded metadata, while cool and archive storage tiers can reduce long-term storage cost. Those tiers may have retrieval delays and additional access charges, so the application is intended as an independent archival backup rather than a replacement for a photo-browsing service.
-
-## Planned Goals
-
-* Discover user-approved photos and videos through Android's supported media APIs
-* Stream media from content URIs without requiring filesystem paths or loading entire files into memory
-* Preserve available original bytes and the operational metadata required for safe reconciliation
-* Make interrupted work resumable and uploads idempotent without relying on filenames alone
-* Propagate cancellation through discovery, hashing, persistence, retry, and upload operations
-* Respect network, battery, and Android background-execution constraints
-* Keep cloud credentials and personal media out of source control and logs
-* Isolate Azure-specific behavior behind provider-neutral contracts
-
-## Planned Initial Scope
-
-The planned first release is copy-only. It is intended to:
-
-* Run on Android, with a Pixel 7 as the initial physical-device target
-* Read user-approved photos and videos from the DCIM media collection
-* Copy content to a private Azure Blob Storage container
-* Track backup state locally so work can resume after interruption
-* Report progress and actionable failures without exposing personal data
-
-Automatic deletion, bidirectional synchronization, and remote-to-device restore are out of scope until their safety behavior is designed and tested explicitly.
-
-## Planned Architecture
-
-The following diagram describes planned behavior, not the static shell that exists today.
-
-```mermaid
-flowchart LR
-    A([Android DCIM]) --> B[Media discovery]
-    B --> C[Backup queue]
-    C --> D[Cloud storage provider]
-    D --> E[(Azure Blob Storage)]
-    C --> F[(Local backup state)]
-```
-
-The future Azure provider must remain compatible with an existing Blob container. Its non-secret configuration will support separate destination prefixes for JPG and MP4 media without forcing a new container or naming layout. Actual infrastructure identifiers, prefix values, endpoints, and credentials do not belong in tracked documentation or configuration.
-
-## Security and Privacy
-
-The static shell stores no credentials or backup state and sends no media or product data off the device. Its manifest currently declares only these network permissions:
-
-* `android.permission.INTERNET` permits future network communication but is not exercised by the static shell
-* `android.permission.ACCESS_NETWORK_STATE` permits future connectivity checks but is not exercised by the static shell
-
-Android application-data backup is disabled with `android:allowBackup="false"`. Future persistent state requires a separate review of Android backup and device-transfer protections.
-
-The following rules govern planned product work:
-
-* Never embed Azure Storage account keys, connection strings, client secrets, signing passwords, or long-lived SAS values in the application package.
-* Prefer short-lived, least-privilege access. Persist sensitive user-provided values only through .NET MAUI secure storage or a stronger platform-backed mechanism.
-* Treat packaged configuration as public because values can be extracted from an APK or Android App Bundle.
-* Do not log media contents, access tokens, SAS query strings, content URIs, full local paths, or personally identifying filenames.
-* Request the minimum Android permissions required. Do not introduce broad all-files access without explicit approval and documented justification.
-* Keep signing keys, keystores, local configuration, personal media, and generated application packages outside source control.
-* Keep v1 copy-only. Do not add local or remote deletion or bidirectional synchronization without explicit approval and dedicated safety tests.
-
-See [SECURITY.md](SECURITY.md) for vulnerability reporting and credential-handling expectations.
-
-## Development Prerequisites
-
-* Visual Studio 2026 with .NET MAUI and Android development workloads
-* Stable .NET SDK `10.0.400`, or a compatible later stable .NET 10 feature band selected by `global.json`
-* Android SDK and a Pixel 7 configured for USB or wireless debugging
-* PowerShell 7
-* Plain Git command-line tooling
-* Pre-commit for full repository lint validation
-
-Azure resources are not required for the current shell because no provider exists.
-
-## Local Development Loop
-
-Use the repository root as the working directory. Open `DcimCloudSync.slnx` in Visual Studio 2026, select the Android application and the paired Pixel 7, then build and deploy interactively over USB or Android wireless debugging. Device pairing, deployment, and launch remain deliberate developer actions in Visual Studio.
-
-The command-line build entry point is the same root solution. With the required SDK and Android workload already installed, these commands restore packages, compile without producing an application package, and inspect dependencies:
+Open `DcimCloudSync.slnx` to inspect the application. With the Android workload already installed,
+compile from the repository root without requesting an application package:
 
 ```powershell
-dotnet workload restore .\DcimCloudSync.slnx
 dotnet restore .\DcimCloudSync.slnx
 dotnet build .\DcimCloudSync.slnx --configuration Debug --no-restore -p:AndroidKeyStore=false -p:AndroidBuildApplicationPackage=false
-dotnet build .\DcimCloudSync.slnx --configuration Release --no-restore -p:AndroidKeyStore=false -p:AndroidBuildApplicationPackage=false
-dotnet list .\src\DcimCloudSync\DcimCloudSync.csproj package --vulnerable --include-transitive --no-restore
 ```
 
-Stop and review the environment if workload restore requests an installation or elevation decision. These commands do not run tests, launch an emulator, contact a device, publish, or deploy.
+To view the page, separately select a compatible Android emulator or paired device in Visual Studio
+and deploy interactively. Deployment is not required to inspect the source. The repository contains
+no automated tests or published application releases.
 
-See [src/DcimCloudSync/README.md](src/DcimCloudSync/README.md) for project-specific details.
+## Privacy and Platform Limits
 
-## Automation and Distribution Status
+The current shell reads no media, stores no credentials or backup state, and sends no product data
+off the device. Its [Android manifest](src/DcimCloudSync/Platforms/Android/AndroidManifest.xml)
+declares only:
 
-The existing GitHub Actions workflow performs repository linting and calculates a non-publishing
-version only. Android compilation in CI, automated device deployment, production signing, release
-artifacts, and Google Play publishing are explicitly deferred. No Play Store readiness or
-signed-release capability is implied by the local shell.
+| Permission | Scope in this checkout |
+| --- | --- |
+| `android.permission.INTERNET` | Allows network access; the static page makes no network requests |
+| `android.permission.ACCESS_NETWORK_STATE` | Allows connectivity inspection; the static page does not inspect it |
 
-## Repository Conventions
+No media, broad storage, notification or background-service permissions are declared. Android
+application-data backup is disabled and cleartext traffic is disallowed. There is no media storage
+or secure-credential implementation to configure, and no background worker survives closing the app.
+Other MAUI platforms are not targeted.
 
-* Application and future test projects live under `src/`.
-* The root solution uses the modern `.slnx` format.
-* Shared MSBuild properties and NuGet versions are centralized in `Directory.Build.props` and `Directory.Packages.props`.
-* `global.json` selects the stable .NET 10 SDK policy.
-* GitVersion provides repository versioning.
-* Linting runs with `pre-commit run --all-files`; the pre-push hook is opt-in through `pre-commit install`.
-* Use plain Git CLI for every repository operation. Do not use GitKraken.
-* Copilot conventions live in `.github/copilot-instructions.md` and `.github/instructions/`.
+See the [security policy](SECURITY.md) for vulnerability reporting.
 
 ## License
 
-This project is released into the public domain under [The Unlicense](LICENSE).
+[MIT](LICENSE).
