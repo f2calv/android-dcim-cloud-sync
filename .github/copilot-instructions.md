@@ -13,12 +13,16 @@ below is specific to this repository.
 
 ## Current Baseline
 
-This is an Android-only .NET 10 MAUI scaffold with one static Shell page. Backup functionality,
-product services, persistence, credentials and cloud-provider integration do not exist yet.
+This is a .NET 10 MAUI app with one Shell page. Android is the product platform; a Windows target
+exists only for debugging services on a workstation. `DcimCloudSync.Core` holds the platform-neutral
+media contracts, a folder-backed media source and an inventory scan. Uploads, persistence,
+credentials and cloud-provider integration do not exist yet.
 
 - Build from `DcimCloudSync.slnx`; central SDK, build and package policy lives in the root files.
 - Keep `net10.0-android`, minimum API 33 and application ID
   `io.github.f2calv.androiddcimcloudsync`.
+- Keep the Windows target development-only: add it only when building on Windows, keep it
+  unpackaged, and never distribute it or let CI build it.
 - Keep `android:allowBackup="false"`.
 - The manifest declares only Internet and network-state permissions. Add no media or background
   permission before the requiring behavior and privacy documentation exist.

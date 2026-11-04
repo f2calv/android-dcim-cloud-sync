@@ -1,3 +1,5 @@
 <Solution>
+  <Project Path="src/DcimCloudSync.Core.Tests/DcimCloudSync.Core.Tests.csproj" />
+  <Project Path="src/DcimCloudSync.Core/DcimCloudSync.Core.csproj" />
   <Project Path="src/DcimCloudSync/DcimCloudSync.csproj" />
 </Solution>

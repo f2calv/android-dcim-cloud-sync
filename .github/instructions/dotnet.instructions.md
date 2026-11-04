@@ -9,7 +9,7 @@ applyTo: '**/*.csproj,**/*.slnx,**/Directory.Build.props,**/Directory.Packages.p
 
 - Let Visual Studio 2026 create the initial .NET MAUI solution and application project.
 - Use the modern `.slnx` solution format and place all projects under `src/`.
-- Target `net10.0-android` initially. Do not add other platform target frameworks unless requested.
+- Target `net10.0-android` for the product. Add `net10.0-windows10.0.19041.0` only when `IsOSPlatform('windows')`, as an unpackaged development target. Do not add other platform target frameworks unless requested.
 - Keep the MAUI application non-packable. NuGet packaging metadata belongs only in a future reusable library that is intentionally published.
 
 ## Central Build Configuration

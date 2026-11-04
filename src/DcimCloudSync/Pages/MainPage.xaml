@@ -21,15 +21,46 @@
                 Text="Current status"
                 SemanticProperties.HeadingLevel="Level2" />
             <Label
-                Text="Backup features are not implemented. This app does not discover media, store credentials, upload files, or run background work."
+                Text="Backup features are not implemented. This app does not store credentials, upload files, or run background work."
                 SemanticProperties.Description="Current status. Backup features are not implemented." />
+            <VerticalStackLayout
+                x:Name="MediaInventorySection"
+                IsVisible="False"
+                Spacing="12">
+                <Label
+                    Margin="0,12,0,0"
+                    Style="{StaticResource SectionTitleLabelStyle}"
+                    Text="Media inventory"
+                    SemanticProperties.HeadingLevel="Level2" />
+                <Label
+                    Text="Reads and hashes every photo and video in the development media folder. Nothing is uploaded or stored." />
+                <HorizontalStackLayout Spacing="12">
+                    <Button
+                        x:Name="ScanButton"
+                        Text="Scan media"
+                        Clicked="OnScanClicked"
+                        SemanticProperties.Hint="Reads and hashes every photo and video in the development media folder" />
+                    <Button
+                        x:Name="CancelScanButton"
+                        Text="Cancel"
+                        IsEnabled="False"
+                        Clicked="OnCancelScanClicked"
+                        SemanticProperties.Hint="Cancels the current media scan" />
+                </HorizontalStackLayout>
+                <ActivityIndicator
+                    x:Name="ScanActivityIndicator"
+                    IsRunning="False"
+                    IsVisible="False"
+                    SemanticProperties.Description="Media scan in progress" />
+                <Label x:Name="ScanStatusLabel" />
+            </VerticalStackLayout>
             <Label
                 Margin="0,12,0,0"
                 Style="{StaticResource SectionTitleLabelStyle}"
                 Text="Learning surface"
                 SemanticProperties.HeadingLevel="Level2" />
             <Label
-                Text="Use this page to explore XAML layout, centralized theme-aware styles, and Android debugging before product features are added." />
+                Text="Use this page to explore XAML layout, centralized theme-aware styles, and debugging on Windows or Android before product features are added." />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

@@ -8,8 +8,17 @@ public sealed partial class AppShell : Shell
     /// <summary>
     /// Initializes a new instance of the <see cref="AppShell"/> class.
     /// </summary>
-    public AppShell()
+    /// <param name="page">The constructor-injected status page.</param>
+    public AppShell(MainPage page)
     {
+        ArgumentNullException.ThrowIfNull(page);
+
         InitializeComponent();
+        Items.Add(new ShellContent
+        {
+            Content = page,
+            Route = "main",
+            Title = "Status",
+        });
     }
 }
