@@ -21,19 +21,19 @@
                 Text="Current status"
                 SemanticProperties.HeadingLevel="Level2" />
             <Label
-                Text="Backup features are not implemented. This app does not store credentials, upload files, or run background work."
-                SemanticProperties.Description="Current status. Backup features are not implemented." />
+                Text="Backup is a development preview. Nothing runs in the background, and no files are deleted."
+                SemanticProperties.Description="Current status. Backup is a development preview." />
             <VerticalStackLayout
-                x:Name="MediaInventorySection"
+                x:Name="MediaSection"
                 IsVisible="False"
                 Spacing="12">
                 <Label
                     Margin="0,12,0,0"
                     Style="{StaticResource SectionTitleLabelStyle}"
-                    Text="Media inventory"
+                    Text="Media"
                     SemanticProperties.HeadingLevel="Level2" />
                 <Label
-                    Text="Reads and hashes every photo and video in the development media folder. Nothing is uploaded or stored." />
+                    Text="Scan reads and hashes every photo and video in the development media folder. Back up copies each one to the configured destination once and never overwrites an existing backup." />
                 <HorizontalStackLayout Spacing="12">
                     <Button
                         x:Name="ScanButton"
@@ -41,18 +41,24 @@
                         Clicked="OnScanClicked"
                         SemanticProperties.Hint="Reads and hashes every photo and video in the development media folder" />
                     <Button
-                        x:Name="CancelScanButton"
+                        x:Name="BackUpButton"
+                        Text="Back up"
+                        IsVisible="False"
+                        Clicked="OnBackUpClicked"
+                        SemanticProperties.Hint="Copies every photo and video that has no backup to the configured destination" />
+                    <Button
+                        x:Name="CancelButton"
                         Text="Cancel"
                         IsEnabled="False"
-                        Clicked="OnCancelScanClicked"
-                        SemanticProperties.Hint="Cancels the current media scan" />
+                        Clicked="OnCancelClicked"
+                        SemanticProperties.Hint="Cancels the current scan or backup" />
                 </HorizontalStackLayout>
                 <ActivityIndicator
-                    x:Name="ScanActivityIndicator"
+                    x:Name="ActivityIndicator"
                     IsRunning="False"
                     IsVisible="False"
-                    SemanticProperties.Description="Media scan in progress" />
-                <Label x:Name="ScanStatusLabel" />
+                    SemanticProperties.Description="Operation in progress" />
+                <Label x:Name="StatusLabel" />
             </VerticalStackLayout>
             <Label
                 Margin="0,12,0,0"

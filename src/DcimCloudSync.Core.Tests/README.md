@@ -15,11 +15,14 @@ dotnet test --project .\src\DcimCloudSync.Core.Tests\DcimCloudSync.Core.Tests.cs
 | --- | --- | --- | --- |
 | [`FileSystemMediaSourceTests`](Tests/Unit/FileSystemMediaSourceTests.cs) | `Discovery` | 4 | 5 |
 | [`MediaInventoryServiceTests`](Tests/Unit/MediaInventoryServiceTests.cs) | `Hashing` | 3 | 3 |
-| **Total** | | **7** | **8** |
+| [`BackupServiceTests`](Tests/Unit/BackupServiceTests.cs) | `Backup` | 5 | 6 |
+| **Total** | | **12** | **14** |
 
-The trait categories are `Discovery`, for finding and opening folder media, and `Hashing`, for scan
-summaries, duplicates, unreadable files and cancellation. `ScanAsync_UnreadableItem` makes a file
-unreadable by holding it open with `FileShare.None`.
+The trait categories are `Discovery`, for finding and opening folder media; `Hashing`, for scan
+summaries, duplicates, unreadable files and cancellation; and `Backup`, for uploads, existing
+matching, conflicting and unverified backups, a concurrent writer, unreadable files and destination
+failures. The `Backup` tests use the in-memory `InMemoryBackupDestination`. The `*_UnreadableItem`
+tests make a file unreadable by holding it open with `FileShare.None`.
 
 ## Skipped Tests
 
@@ -30,9 +33,12 @@ None.
 ```mermaid
 graph TD
     Tests[Tests/] --> Folder[TemporaryMediaFolder.cs]
+    Tests --> Destination[InMemoryBackupDestination.cs]
+    Tests --> Progress[SynchronousProgress.cs]
     Tests --> Unit[Unit/]
     Unit --> Source[FileSystemMediaSourceTests.cs]
     Unit --> Inventory[MediaInventoryServiceTests.cs]
+    Unit --> Backup[BackupServiceTests.cs]
 ```
 
 ## Dependencies

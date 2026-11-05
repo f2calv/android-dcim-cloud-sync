@@ -51,6 +51,9 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
     <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+    <!-- TODO: Reference the Azure destination on Android once a device credential design (short-lived SAS or Entra)
+         exists; until then only the Windows development target can upload. -->
+    <ProjectReference Include="..\DcimCloudSync.Storage.Azure\DcimCloudSync.Storage.Azure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

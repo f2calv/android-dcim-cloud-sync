@@ -1,6 +1,3 @@
-using System.Buffers;
-using System.Security.Cryptography;
-
 namespace DcimCloudSync.Services;
 
 /// <summary>
@@ -15,8 +12,6 @@ public sealed partial class MediaInventoryService(
     TimeProvider timeProvider,
     IMediaSource mediaSource)
 {
-    private const int BufferSize = 81_920;
-
     /// <summary>
     /// Discovers, reads and hashes every item visible to the media source.
     /// </summary>
@@ -39,7 +34,7 @@ public sealed partial class MediaInventoryService(
             itemCount++;
             try
             {
-                var (hash, length) = await HashAsync(item, cancellationToken).ConfigureAwait(false);
+                var (hash, length) = await MediaHash.ComputeAsync(mediaSource, item, cancellationToken).ConfigureAwait(false);
                 totalBytes += length;
                 if (!hashes.Add(hash))
                     duplicateCount++;
@@ -70,32 +65,6 @@ public sealed partial class MediaInventoryService(
             summary.UnreadableCount,
             summary.Elapsed);
         return summary;
-    }
-
-    private async Task<(string Hash, long Length)> HashAsync(MediaItem item, CancellationToken cancellationToken)
-    {
-        var stream = await mediaSource.OpenReadAsync(item, cancellationToken).ConfigureAwait(false);
-        await using (stream.ConfigureAwait(false))
-        {
-            using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-            var buffer = ArrayPool<byte>.Shared.Rent(BufferSize);
-            try
-            {
-                var length = 0L;
-                int read;
-                while ((read = await stream.ReadAsync(buffer.AsMemory(0, BufferSize), cancellationToken).ConfigureAwait(false)) > 0)
-                {
-                    hash.AppendData(buffer, 0, read);
-                    length += read;
-                }
-
-                return (Convert.ToHexStringLower(hash.GetHashAndReset()), length);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
-        }
     }
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "{ClassName} hashed ItemNumber={ItemNumber} Length={Length}")]

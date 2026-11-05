@@ -1,32 +1,43 @@
 # Android DCIM Cloud Sync
 
 Android DCIM Cloud Sync is a .NET 10 MAUI learning project for a photo and video backup application.
-Android is the product platform. A Windows target exists only so services can be developed and
-debugged on a workstation before they are tried on a phone. Nothing is backed up or synchronized yet.
+Android is the product platform. A Windows target exists so services can be developed and debugged on
+a workstation before they are tried on a phone. Backup works only from the Windows development target
+today.
 
 ## Current Application
 
 The app opens one scrollable **Status** page.
 
 - **Android 13 or later:** the page is static. The app reads no media and has no backup controls.
-- **Windows (development only):** the page adds a **Media inventory** scan. The scan reads every
-  photo and video in a local folder that stands in for the phone's DCIM collection, computes a
-  SHA-256 hash of each file and reports the item count, bytes read, duplicates and unreadable files.
-  It uploads and stores nothing.
+- **Windows (development only):** the page adds a **Media** section that reads a local folder standing
+  in for the phone's DCIM collection.
+  - **Scan media** computes a SHA-256 hash of each photo and video and reports the item count, bytes
+    read, duplicates and unreadable files.
+  - **Back up** appears when a backup destination is configured. It copies each item to Azure Blob
+    Storage once, records its SHA-256 as blob metadata and never overwrites or deletes anything. A
+    rerun uploads only missing items and reports existing backups whose hash matches, differs
+    (conflict) or is absent (unverified).
 
-Uploads, cloud providers, authentication, persistence, background scheduling, resume and deletion
-are not implemented. Azure Blob Storage is not a usable destination in this checkout.
+Background scheduling, retries, Android media access, device credentials and deletion are not
+implemented.
 
 | Project | Purpose |
 | --- | --- |
 | [DcimCloudSync](src/DcimCloudSync/README.md) | MAUI application for Android, plus the Windows development target |
-| [DcimCloudSync.Core](src/DcimCloudSync.Core/README.md) | Platform-neutral media contracts, folder media source and inventory scan |
+| [DcimCloudSync.Core](src/DcimCloudSync.Core/README.md) | Platform-neutral media and backup contracts, folder media source, scan and backup services |
+| [DcimCloudSync.Storage.Azure](src/DcimCloudSync.Storage.Azure/README.md) | Azure Blob Storage backup destination built on `CasCap.Api.Azure.Storage` |
 | [DcimCloudSync.Core.Tests](src/DcimCloudSync.Core.Tests/README.md) | Unit tests for the core library |
+| [DcimCloudSync.Storage.Azure.Tests](src/DcimCloudSync.Storage.Azure.Tests/README.md) | Naming unit tests and Azurite integration tests for the Azure destination |
 
 ```mermaid
 graph LR
     App[DcimCloudSync<br/>MAUI app] --> Core[DcimCloudSync.Core]
-    Tests[DcimCloudSync.Core.Tests] --> Core
+    App -- Windows only --> Azure[DcimCloudSync.Storage.Azure]
+    Azure --> Core
+    Azure --> Lib[CasCap.Api.Azure.Storage]
+    CoreTests[DcimCloudSync.Core.Tests] --> Core
+    AzureTests[DcimCloudSync.Storage.Azure.Tests] --> Azure
 ```
 
 ## Local Development
@@ -39,15 +50,28 @@ Install the workload from an elevated prompt in the repository root so `global.j
 dotnet workload install maui-android
 ```
 
-Visual Studio 2026 with MAUI tooling is the interactive development path. No Azure account or
-cloud resources are needed. Build every project from the repository root:
+Visual Studio 2026 with MAUI tooling is the interactive development path. Debug builds reference the
+`CasCap.Api.Azure.Storage` source in a sibling `CasCap.Api.Azure` checkout, which in turn expects a
+sibling `CasCap.Common` checkout; clone both next to this repository. Build every project from the
+repository root:
 
 ```powershell
 dotnet build .\DcimCloudSync.slnx --configuration Debug
 ```
 
 On Windows this builds both the Android and Windows targets. On other operating systems, and in CI,
-only the Android target is built.
+only the Android target is built. A Windows Release build needs a published
+`CasCap.Api.Azure.Storage` release with create-only uploads; until then use Debug.
+
+### Local Azure Storage
+
+[docker-compose.yml](docker-compose.yml) runs Azurite, the Azure Storage emulator, on
+`127.0.0.1:10000`. No Azure account is needed:
+
+```powershell
+docker compose up -d --wait azurite
+docker compose down            # stop; add --volumes to discard emulator data
+```
 
 ### Debug on Windows
 
@@ -56,10 +80,20 @@ Debug services on Windows first; switch to Android only for a deliberate device 
 1. Put synthetic or copied test photos and videos in `Pictures\DcimCloudSync`. Subfolders are
    scanned. Do not use media you would not want read by development builds.
 2. To use another folder, set the `DcimCloudSync__FileSystemMediaSource__RootPath` user environment
-   variable, then restart Visual Studio so the app inherits it.
-3. In Visual Studio, select the `net10.0-windows10.0.19041.0` framework and the **Windows Machine**
-   target, then start debugging. The app runs unpackaged, without MSIX.
-4. Select **Scan media**. Debug output shows the scan summary; it never includes file names or paths.
+   variable.
+3. To enable **Back up** against Azurite, set these user environment variables:
+
+   ```powershell
+   [Environment]::SetEnvironmentVariable('DcimCloudSync__AzureBlobBackup__ConnectionString', 'UseDevelopmentStorage=true', 'User')
+   [Environment]::SetEnvironmentVariable('DcimCloudSync__AzureBlobBackup__ContainerCreationEnabled', 'true', 'User')
+   ```
+
+   The [Azure destination README](src/DcimCloudSync.Storage.Azure/README.md#configuration) lists every
+   setting. Never point a development build at a production account.
+4. Restart Visual Studio so the app inherits the variables. Select the `net10.0-windows10.0.19041.0`
+   framework and the **Windows Machine** target, then start debugging. The app runs unpackaged.
+5. Select **Scan media** or **Back up**. Debug output shows summaries; it never includes file names or
+   paths.
 
 ### Debug on Android
 
@@ -68,11 +102,22 @@ An Android emulator avoids enabling developer options on a managed phone.
 
 ### Tests
 
-The unit tests need only the local machine: no device, Android SDK, network or cloud resources.
+Unit tests need only the local machine: no device, Android SDK, network or cloud resources.
 
 ```powershell
 dotnet test --project .\src\DcimCloudSync.Core.Tests\DcimCloudSync.Core.Tests.csproj
+dotnet test --project .\src\DcimCloudSync.Storage.Azure.Tests\DcimCloudSync.Storage.Azure.Tests.csproj --filter-not-trait Category=Integration
 ```
+
+Integration tests upload to Azurite in disposable per-test containers and skip when it is not
+running. Start Azurite first, then omit the filter:
+
+```powershell
+docker compose up -d --wait azurite
+dotnet test --project .\src\DcimCloudSync.Storage.Azure.Tests\DcimCloudSync.Storage.Azure.Tests.csproj
+```
+
+There are no UI automation tests; the page is validated interactively.
 
 ## Privacy and Platform Limits
 
@@ -89,8 +134,10 @@ No media, broad storage, notification or background-service permissions are decl
 application-data backup is disabled and cleartext traffic is disallowed. No background worker
 survives closing the app.
 
-The Windows scan reads files only from the configured folder, keeps results in memory and makes no
-network requests. The Windows target is not distributed. iOS and macOS are not targeted.
+The Windows target reads files only from the configured folder and sends them only to the configured
+backup destination. Its connection string comes from an environment variable and is never stored by
+the app. Uploads are create-only: nothing is overwritten or deleted, locally or remotely. The Windows
+target is not distributed. iOS and macOS are not targeted.
 
 See the [security policy](SECURITY.md) for vulnerability reporting.
 

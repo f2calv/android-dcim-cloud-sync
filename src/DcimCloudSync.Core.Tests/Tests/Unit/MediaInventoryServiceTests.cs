@@ -16,7 +16,7 @@ public sealed class MediaInventoryServiceTests
         var reports = new List<MediaInventoryProgress>();
 
         var summary = await CreateService(folder).ScanAsync(
-            new SynchronousProgress(reports.Add),
+            new SynchronousProgress<MediaInventoryProgress>(reports.Add),
             TestContext.Current.CancellationToken);
 
         Assert.Equal(3, summary.ItemCount);
@@ -55,9 +55,4 @@ public sealed class MediaInventoryServiceTests
 
     private static MediaInventoryService CreateService(TemporaryMediaFolder folder) =>
         new(NullLogger<MediaInventoryService>.Instance, TimeProvider.System, folder.Source);
-
-    private sealed class SynchronousProgress(Action<MediaInventoryProgress> handler) : IProgress<MediaInventoryProgress>
-    {
-        public void Report(MediaInventoryProgress value) => handler(value);
-    }
 }

@@ -15,14 +15,20 @@ below is specific to this repository.
 
 This is a .NET 10 MAUI app with one Shell page. Android is the product platform; a Windows target
 exists only for debugging services on a workstation. `DcimCloudSync.Core` holds the platform-neutral
-media contracts, a folder-backed media source and an inventory scan. Uploads, persistence,
-credentials and cloud-provider integration do not exist yet.
+media and backup contracts, a folder-backed media source, an inventory scan and a create-only backup
+service. `DcimCloudSync.Storage.Azure` implements the backup destination with Azure Blob Storage and is
+referenced only by the Windows target. Android media access, device credentials, background work and
+persistence do not exist yet.
 
 - Build from `DcimCloudSync.slnx`; central SDK, build and package policy lives in the root files.
 - Keep `net10.0-android`, minimum API 33 and application ID
   `io.github.f2calv.androiddcimcloudsync`.
 - Keep the Windows target development-only: add it only when building on Windows, keep it
   unpackaged, and never distribute it or let CI build it.
+- Keep Azure SDK and `CasCap.Api.Azure.Storage` references inside `DcimCloudSync.Storage.Azure`.
+  Debug references the sibling `CasCap.Api.Azure` checkout; Release uses the published package.
+- Backups are create-only: never overwrite or delete a blob, and report hash conflicts instead.
+- Integration tests use Azurite from the root `docker-compose.yml` and per-test containers.
 - Keep `android:allowBackup="false"`.
 - The manifest declares only Internet and network-state permissions. Add no media or background
   permission before the requiring behavior and privacy documentation exist.
