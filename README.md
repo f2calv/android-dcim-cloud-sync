@@ -57,7 +57,7 @@ sibling `CasCap.Common` checkout; clone both next to this repository. Build ever
 repository root:
 
 ```powershell
-dotnet build .\DcimCloudSync.slnx --configuration Debug
+dotnet build .\android-dcim-cloud-sync.slnx --configuration Debug
 ```
 
 On Windows this builds both the Android and Windows targets; on other operating systems only the

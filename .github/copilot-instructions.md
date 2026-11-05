@@ -20,7 +20,7 @@ service. `DcimCloudSync.Storage.Azure` implements the backup destination with Az
 referenced only by the Windows target. Android media access, device credentials, background work and
 persistence do not exist yet.
 
-- Build from `DcimCloudSync.slnx`; central SDK, build and package policy lives in the root files.
+- Build from `android-dcim-cloud-sync.slnx`, named after the repository; central SDK, build and package policy lives in the root files.
 - Keep `net10.0-android`, minimum API 33 and application ID
   `io.github.f2calv.androiddcimcloudsync`.
 - Keep the Windows target development-only: add it only when building on Windows and keep it
