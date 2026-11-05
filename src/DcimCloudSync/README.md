@@ -33,8 +33,9 @@ The [project definition](DcimCloudSync.csproj) always targets `net10.0-android`,
 33 (Android 13). It does not set a target SDK API explicitly; that is resolved by the installed
 Android workload. When the build runs on Windows, it also targets `net10.0-windows10.0.19041.0`,
 minimum Windows 10 version 1809 (`10.0.17763.0`), as an unpackaged app (`WindowsPackageType=None`)
-started through the **Windows Machine** [launch profile](Properties/launchSettings.json). CI runs on
-Linux, so it builds and publishes the Android target only. iOS and macOS are not targeted.
+started through the **Windows Machine** [launch profile](Properties/launchSettings.json). CI builds the
+Android target on Linux and publishes the Windows target on a Windows runner as a self-contained test
+artifact; neither is released to users. iOS and macOS are not targeted.
 
 The [manifest](Platforms/Android/AndroidManifest.xml) disables application-data backup
 (`android:allowBackup="false"`) and cleartext traffic (`android:usesCleartextTraffic="false"`).

@@ -59,9 +59,20 @@ repository root:
 dotnet build .\DcimCloudSync.slnx --configuration Debug
 ```
 
-On Windows this builds both the Android and Windows targets. On other operating systems, and in CI,
-only the Android target is built. A Windows Release build needs a published
-`CasCap.Api.Azure.Storage` release with create-only uploads; until then use Debug.
+On Windows this builds both the Android and Windows targets; on other operating systems only the
+Android target is built. A Windows Release build needs a published `CasCap.Api.Azure.Storage` release
+with create-only uploads; until then use Debug.
+
+### Continuous Integration
+
+[CI](.github/workflows/ci.yml) lints, calculates the version, then builds both targets with shared
+workflows:
+
+- **`build`** publishes an unsigned Android App Bundle on Linux.
+- **`build-windows`** publishes a self-contained, unpackaged `win-x64` build on Windows and uploads it
+  as a run artifact named `DcimCloudSync-windows-x64-<version>`, kept for 14 days. Download it from the
+  run's **Artifacts** section, extract it and start `DcimCloudSync.exe`; no .NET or Windows App SDK
+  install is needed. It is a development build for testing, never a release.
 
 ### Local Azure Storage
 
