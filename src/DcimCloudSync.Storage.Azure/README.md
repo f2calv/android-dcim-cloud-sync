@@ -49,9 +49,9 @@ least-privilege credentials, which are not designed yet.
 | --- | --- | --- |
 | [DcimCloudSync.Core](../DcimCloudSync.Core/README.md) | All | Backup contract, models and exception |
 | `CasCap.Api.Azure.Storage` project in a sibling `CasCap.Api.Azure` checkout | Debug | Create-only uploads and metadata reads |
-| `CasCap.Api.Azure.Storage` package | Release | The same API, once released |
+| `CasCap.Api.Azure.Storage` 2.0.0 package | Release | Published create-only uploads and metadata reads |
 | `Microsoft.Extensions.Options` | All | `IOptions` configuration access |
 
-Release builds need a `CasCap.Api.Azure.Storage` release that contains `UploadBlobIfNotExistsAsync`
-and `GetBlobMetadataAsync`; the central package version is raised when it ships. The library also
-brings the Azure Queue and Table SDKs. The project is not packable.
+Release builds restore `CasCap.Api.Azure.Storage` 2.0.0, which contains `UploadBlobIfNotExistsAsync`
+and `GetBlobMetadataAsync`; Debug retains the sibling-source substitution. The library also brings
+the Azure Queue and Table SDKs. This project is not packable and publishes no separate NuGet package.

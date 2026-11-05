@@ -4,9 +4,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- TODO: Raise to the first CasCap.Api.Azure.Storage release containing UploadBlobIfNotExistsAsync and
-         GetBlobMetadataAsync. Until then only Debug, which builds the sibling checkout, compiles the Windows target. -->
-    <PackageVersion Include="CasCap.Api.Azure.Storage" Version="1.8.0" />
+    <PackageVersion Include="CasCap.Api.Azure.Storage" Version="2.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.14" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.14" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.14" />

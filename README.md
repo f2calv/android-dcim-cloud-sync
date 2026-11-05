@@ -31,15 +31,17 @@ implemented.
 | [DcimCloudSync.Core.Tests](src/DcimCloudSync.Core.Tests/README.md) | Unit tests for the core library |
 | [DcimCloudSync.Storage.Azure.Tests](src/DcimCloudSync.Storage.Azure.Tests/README.md) | Naming unit tests and Azurite integration tests for the Azure destination |
 
+## System Context
+
 ```mermaid
-graph LR
-    App[DcimCloudSync<br/>MAUI app] --> Core[DcimCloudSync.Core]
-    App -- Windows only --> Azure[DcimCloudSync.Storage.Azure]
-    Azure --> Core
-    Azure --> Lib[CasCap.Api.Azure.Storage]
-    CoreTests[DcimCloudSync.Core.Tests] --> Core
-    AzureTests[DcimCloudSync.Storage.Azure.Tests] --> Azure
+flowchart LR
+    Developer["Developer"] --> App["Android DCIM Cloud Sync"]
+    Folder["Synthetic development media folder"] -->|Windows-only discovery and reads| App
+    App -->|Windows-only create-only uploads and hash metadata| Storage["Azurite or configured Azure Blob Storage"]
 ```
+
+The Android page remains static. The Windows development target is the only runtime that reads
+media or uploads backups. See the [architecture, dependencies and validation flow](docs/architecture.md).
 
 ## Local Development
 
@@ -61,24 +63,25 @@ dotnet build .\android-dcim-cloud-sync.slnx --configuration Debug
 ```
 
 On Windows this builds both the Android and Windows targets; on other operating systems only the
-Android target is built. A Windows Release build needs a published `CasCap.Api.Azure.Storage` release
-with create-only uploads; until then use Debug.
+Android target is built. Release builds use the published `CasCap.Api.Azure.Storage` **2.0.0**,
+including create-only uploads and metadata lookup; no sibling checkout is required for Release.
+
+```powershell
+dotnet build .\android-dcim-cloud-sync.slnx --configuration Release
+```
 
 ### Continuous Integration
 
-[CI](.github/workflows/ci.yml) lints, calculates the version, then builds both targets with shared
-workflows:
-
-- **`build`** publishes an unsigned Android App Bundle on Linux.
-- **`build-windows`** publishes a self-contained, unpackaged `win-x64` build on Windows and uploads it
-  as a run artifact named `DcimCloudSync-windows-x64-<version>`, kept for 14 days. Download it from the
-  run's **Artifacts** section, extract it and start `DcimCloudSync.exe`; no .NET or Windows App SDK
-  install is needed. It is a development build for testing, never a release.
+[CI](.github/workflows/ci.yml) produces unsigned Android validation bundles and a self-contained,
+unpackaged Windows development artifact named `DcimCloudSync-windows-x64-<version>`, kept for
+14 days. Download it from the run's **Artifacts** section, extract it and start `DcimCloudSync.exe`;
+no .NET or Windows App SDK install is needed. These are test artifacts, not signed or distributed
+product releases. See the [validation flow](docs/architecture.md#validation-flow).
 
 ### Local Azure Storage
 
-[docker-compose.yml](docker-compose.yml) runs Azurite, the Azure Storage emulator, on
-`127.0.0.1:10000`. No Azure account is needed:
+[docker-compose.yml](docker-compose.yml) runs Azurite, the Azure Storage emulator. No Azure account
+is needed; the Compose file owns its listener and storage configuration:
 
 ```powershell
 docker compose up -d --wait azurite
