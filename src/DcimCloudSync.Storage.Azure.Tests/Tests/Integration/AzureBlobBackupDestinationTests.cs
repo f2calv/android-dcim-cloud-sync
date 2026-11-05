@@ -52,6 +52,19 @@ public sealed class AzureBlobBackupDestinationTests : TestBase
     }
 
     [Fact]
+    public async Task BackUpAsync_ItemChangedAfterHashing()
+    {
+        var source = new ChangingMediaSource("Camera/IMG_0001.jpg", "photo"u8.ToArray(), "edited photo"u8.ToArray());
+        var service = new BackupService(NullLogger<BackupService>.Instance, TimeProvider.System, source, CreateDestination());
+
+        var summary = await service.BackUpAsync(null, TestContext.Current.CancellationToken);
+
+        Assert.Equal((0, 1), (summary.UploadedCount, summary.ChangedCount));
+        var blob = new BlobContainerClient(ConnectionString, ContainerName).GetBlobClient("photos/Camera/IMG_0001.jpg");
+        Assert.False(await blob.ExistsAsync(TestContext.Current.CancellationToken));
+    }
+
+    [Fact]
     public async Task BackUpAsync_Lifecycle()
     {
         AddFile("Camera/IMG_0001.jpg", "photo");

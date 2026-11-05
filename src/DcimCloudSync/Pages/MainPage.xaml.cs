@@ -76,7 +76,7 @@ public sealed partial class MainPage : ContentPage
             summary => string.Format(
                 CultureInfo.CurrentCulture,
                 "Checked {0:N0} items in {1:N1} s. Uploaded: {2:N0} ({3:N1} MiB). Already backed up: {4:N0}. "
-                    + "Conflicts: {5:N0}. Unverified: {6:N0}. Unreadable: {7:N0}.",
+                    + "Conflicts: {5:N0}. Unverified: {6:N0}. Changed during backup: {7:N0}. Unreadable: {8:N0}.",
                 summary.ItemCount,
                 summary.Elapsed.TotalSeconds,
                 summary.UploadedCount,
@@ -84,6 +84,7 @@ public sealed partial class MainPage : ContentPage
                 summary.AlreadyBackedUpCount,
                 summary.ConflictCount,
                 summary.UnverifiedCount,
+                summary.ChangedCount,
                 summary.UnreadableCount));
     }
 

@@ -8,17 +8,18 @@ Microsoft.Testing.Platform.
 | Class | Category | Methods | Test cases | Needs |
 | --- | --- | --- | --- | --- |
 | [`BlobNameTests`](Tests/Unit/BlobNameTests.cs) | `Naming` | 1 | 4 | Nothing |
-| [`AzureBlobBackupDestinationTests`](Tests/Integration/AzureBlobBackupDestinationTests.cs) | `Integration` | 4 | 4 | Azurite or a configured account |
-| **Total** | | **5** | **8** | |
+| [`AzureBlobBackupDestinationTests`](Tests/Integration/AzureBlobBackupDestinationTests.cs) | `Integration` | 5 | 5 | Azurite or a configured account |
+| **Total** | | **6** | **9** | |
 
 - `Naming` checks photo and video prefixes, trimmed and empty prefixes.
 - `Integration` checks create-only uploads, recorded hashes, content types and access tiers, the error for
-  a missing container, and a backup run over a temporary folder: first upload, rerun, then a changed file
-  reported as a conflict.
+  a missing container, an item changed after hashing leaving no blob behind, and a backup run over a
+  temporary folder: first upload, rerun, then a changed file reported as a conflict. The changing
+  item comes from `ChangingMediaSource`, linked from the core test project.
 
 ## Skipped Tests
 
-The 4 `Integration` cases skip, with a message naming the start command, when Azurite is not reachable
+The 5 `Integration` cases skip, with a message naming the start command, when Azurite is not reachable
 on `127.0.0.1:10000`. No test is skipped unconditionally.
 
 ## Running
@@ -50,6 +51,7 @@ graph TD
     Unit --> Naming[BlobNameTests.cs]
     Integration --> Base[TestBase.cs]
     Integration --> Destination[AzureBlobBackupDestinationTests.cs]
+    Tests -.-> Changing[ChangingMediaSource.cs, linked]
 ```
 
 ## Dependencies

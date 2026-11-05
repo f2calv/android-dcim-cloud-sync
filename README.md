@@ -17,7 +17,8 @@ The app opens one scrollable **Status** page.
   - **Back up** appears when a backup destination is configured. It copies each item to Azure Blob
     Storage once, records its SHA-256 as blob metadata and never overwrites or deletes anything. A
     rerun uploads only missing items and reports existing backups whose hash matches, differs
-    (conflict) or is absent (unverified).
+    (conflict) or is absent (unverified). A file edited during its upload is abandoned before commit
+    and retried by the next run.
 
 Background scheduling, retries, Android media access, device credentials and deletion are not
 implemented.

@@ -17,6 +17,7 @@ Android or Azure dependency, so it can be developed and tested on any workstatio
 | [`BackupService`](Services/BackupService.cs) | Hashes each item, compares it with its backup and uploads only missing items |
 | [`BackupRecord`](Models/BackupRecord.cs), [`BackupProgress`](Models/BackupProgress.cs), [`BackupSummary`](Models/BackupSummary.cs), [`BackupItemOutcome`](Models/_Enums.cs) | Existing backup hash, run progress, run summary and per-item outcome |
 | [`BackupDestinationException`](Exceptions/BackupDestinationException.cs) | Provider-neutral destination failure; its message holds no item names, paths or endpoints |
+| [`MediaChangedException`](Exceptions/MediaChangedException.cs) | Item content changed after hashing; raised by the upload stream before anything is committed |
 
 ```mermaid
 flowchart LR
@@ -49,12 +50,17 @@ flowchart LR
     B -- Same hash --> E[Already backed up]
     B -- Different hash --> F[Conflict]
     B -- No recorded hash --> G[Unverified]
+    C -- Content changed --> H[Changed, retried next run]
 ```
 
 Because the destination is the record of what is backed up, an interrupted run resumes by
 skipping items that already match, with no local state. Unreadable items are counted and skipped;
-a `BackupDestinationException` stops the run. A file changed between the two reads is uploaded
-with its earlier hash; the TODO on `BackUpItemAsync` records that gap.
+a `BackupDestinationException` stops the run.
+
+The upload stream re-hashes the content as the destination reads it. If the item changed after it
+was hashed, the read that reaches the end throws `MediaChangedException` before the destination can
+commit, so no backup with a mismatched hash is created. The item is counted as changed and retried
+by the next run. Destinations must therefore read the content to its end before committing.
 
 Item names and paths can identify a person, so logs contain only counts, item ordinal numbers,
 outcomes, byte lengths and exception type names.

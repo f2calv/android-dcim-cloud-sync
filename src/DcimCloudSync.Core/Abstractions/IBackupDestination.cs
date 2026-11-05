@@ -21,7 +21,9 @@ public interface IBackupDestination
     /// Creates the backup of an item unless one already exists.
     /// </summary>
     /// <param name="item">The item being backed up.</param>
-    /// <param name="content">The item's content, read sequentially and owned by the caller.</param>
+    /// <param name="content">The item's content, read sequentially and owned by the caller. Read it to its end before
+    /// committing the backup: the read that reports the end may throw <see cref="Exceptions.MediaChangedException"/>, and
+    /// then nothing may be committed.</param>
     /// <param name="sha256">The lowercase hexadecimal SHA-256 of the content, recorded with the backup.</param>
     /// <param name="cancellationToken">Cancels the upload.</param>
     /// <returns><see langword="true"/> when the backup was created; <see langword="false"/> when a backup already existed and

@@ -13,4 +13,8 @@
   <ItemGroup>
     <PackageReference Include="xunit.v3" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\DcimCloudSync.Core.Tests\Tests\ChangingMediaSource.cs" Link="Tests\ChangingMediaSource.cs" />
+  </ItemGroup>
 </Project>

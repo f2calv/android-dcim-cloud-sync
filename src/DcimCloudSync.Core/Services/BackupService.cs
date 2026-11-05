@@ -5,7 +5,8 @@ namespace DcimCloudSync.Services;
 /// </summary>
 /// <remarks>
 /// Each item is hashed first, then compared with its existing backup, so a rerun uploads only missing items and an
-/// interrupted run resumes without local state. Logs contain counts and outcomes only, never item names or paths.
+/// interrupted run resumes without local state. The upload re-hashes the content as it streams and fails before commit when
+/// the item changed after hashing. Logs contain counts and outcomes only, never item names or paths.
 /// </remarks>
 public sealed partial class BackupService(
     ILogger<BackupService> logger,
@@ -41,6 +42,11 @@ public sealed partial class BackupService(
 
                 LogItemProcessed(logger, nameof(BackupService), itemCount, outcome);
             }
+            catch (Exception ex) when (IsMediaChanged(ex))
+            {
+                counts[BackupItemOutcome.Changed] = counts.GetValueOrDefault(BackupItemOutcome.Changed) + 1;
+                LogItemProcessed(logger, nameof(BackupService), itemCount, BackupItemOutcome.Changed);
+            }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
                 unreadableCount++;
@@ -56,6 +62,7 @@ public sealed partial class BackupService(
             counts.GetValueOrDefault(BackupItemOutcome.AlreadyBackedUp),
             counts.GetValueOrDefault(BackupItemOutcome.Conflict),
             counts.GetValueOrDefault(BackupItemOutcome.Unverified),
+            counts.GetValueOrDefault(BackupItemOutcome.Changed),
             unreadableCount,
             uploadedBytes,
             timeProvider.GetElapsedTime(startedAt));
@@ -67,14 +74,15 @@ public sealed partial class BackupService(
             summary.AlreadyBackedUpCount,
             summary.ConflictCount,
             summary.UnverifiedCount,
+            summary.ChangedCount,
             summary.UnreadableCount,
             summary.Elapsed);
         return summary;
     }
 
-    // TODO: The content is read twice, once to hash and once to upload, so a file modified between the reads is uploaded
-    // with the hash of its earlier content. Deferred because camera files are rarely rewritten; hashing during the upload
-    // and verifying before commit would close the gap once the destination contract supports a post-upload check.
+    // TODO: New items are read twice, once to hash for the lookup and once to upload. A destination that sets the hash at
+    // commit, such as Azure staged blocks with metadata on Put Block List, could hash during a single upload read; deferred
+    // until throughput on large videos shows the second read matters.
     private async Task<BackupItemOutcome> BackUpItemAsync(MediaItem item, string sha256, CancellationToken cancellationToken)
     {
         var existing = await backupDestination.FindBackupAsync(item, cancellationToken).ConfigureAwait(false);
@@ -83,8 +91,12 @@ public sealed partial class BackupService(
             var content = await mediaSource.OpenReadAsync(item, cancellationToken).ConfigureAwait(false);
             await using (content.ConfigureAwait(false))
             {
-                if (await backupDestination.TryCreateBackupAsync(item, content, sha256, cancellationToken).ConfigureAwait(false))
-                    return BackupItemOutcome.Uploaded;
+                var verifiedContent = new HashVerifyingStream(content, sha256);
+                await using (verifiedContent.ConfigureAwait(false))
+                {
+                    if (await backupDestination.TryCreateBackupAsync(item, verifiedContent, sha256, cancellationToken).ConfigureAwait(false))
+                        return BackupItemOutcome.Uploaded;
+                }
             }
 
             // Another writer created the backup between the lookup and the upload.
@@ -99,6 +111,13 @@ public sealed partial class BackupService(
         };
     }
 
+    private static bool IsMediaChanged(Exception exception) => exception switch
+    {
+        MediaChangedException => true,
+        AggregateException aggregate => aggregate.InnerExceptions.Any(IsMediaChanged),
+        _ => exception.InnerException is { } inner && IsMediaChanged(inner),
+    };
+
     [LoggerMessage(Level = LogLevel.Debug, Message = "{ClassName} processed ItemNumber={ItemNumber} Outcome={Outcome}")]
     private static partial void LogItemProcessed(ILogger logger, string className, int itemNumber, BackupItemOutcome outcome);
 
@@ -107,7 +126,7 @@ public sealed partial class BackupService(
 
     [LoggerMessage(
         Level = LogLevel.Information,
-        Message = "{ClassName} backup completed ItemCount={ItemCount} UploadedCount={UploadedCount} AlreadyBackedUpCount={AlreadyBackedUpCount} ConflictCount={ConflictCount} UnverifiedCount={UnverifiedCount} UnreadableCount={UnreadableCount} Elapsed={Elapsed}")]
+        Message = "{ClassName} backup completed ItemCount={ItemCount} UploadedCount={UploadedCount} AlreadyBackedUpCount={AlreadyBackedUpCount} ConflictCount={ConflictCount} UnverifiedCount={UnverifiedCount} ChangedCount={ChangedCount} UnreadableCount={UnreadableCount} Elapsed={Elapsed}")]
     private static partial void LogRunCompleted(
         ILogger logger,
         string className,
@@ -116,6 +135,7 @@ public sealed partial class BackupService(
         int alreadyBackedUpCount,
         int conflictCount,
         int unverifiedCount,
+        int changedCount,
         int unreadableCount,
         TimeSpan elapsed);
 }

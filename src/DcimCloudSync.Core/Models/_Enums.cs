@@ -16,4 +16,7 @@ public enum BackupItemOutcome
 
     /// <summary>A backup without a recorded SHA-256 already existed; it was left unchanged.</summary>
     Unverified,
+
+    /// <summary>The item changed after hashing, so its upload was abandoned before commit; a later run retries it.</summary>
+    Changed,
 }

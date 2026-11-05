@@ -80,6 +80,19 @@ public sealed class BackupServiceTests
     }
 
     [Fact]
+    public async Task BackUpAsync_ItemChangedAfterHashing()
+    {
+        var source = new ChangingMediaSource("IMG_0001.jpg", "photo"u8.ToArray(), "edited photo"u8.ToArray());
+        var destination = new InMemoryBackupDestination();
+        var service = new BackupService(NullLogger<BackupService>.Instance, TimeProvider.System, source, destination);
+
+        var summary = await service.BackUpAsync(null, TestContext.Current.CancellationToken);
+
+        Assert.Equal((1, 0, 1, 0L), (summary.ItemCount, summary.UploadedCount, summary.ChangedCount, summary.UploadedBytes));
+        Assert.Empty(destination.Backups);
+    }
+
+    [Fact]
     public async Task BackUpAsync_DestinationFailure()
     {
         using var folder = new TemporaryMediaFolder();
