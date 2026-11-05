@@ -1,0 +1,9 @@
+global using Azure;
+global using Azure.Storage.Blobs;
+global using Azure.Storage.Blobs.Models;
+global using CasCap.Messages;
+global using CasCap.Services;
+global using DcimCloudSync.Abstractions;
+global using DcimCloudSync.Exceptions;
+global using DcimCloudSync.Models;
+global using Microsoft.Extensions.Options;

@@ -13,16 +13,27 @@ below is specific to this repository.
 
 ## Current Baseline
 
-This is an Android-only .NET 10 MAUI scaffold with one static Shell page. Backup functionality,
-product services, persistence, credentials and cloud-provider integration do not exist yet.
+This is a .NET 10 MAUI app with one Shell page. Android is the product platform; a Windows target
+exists only for debugging services on a workstation. `DcimCloudSync.Core` holds the platform-neutral
+media and backup contracts, a folder-backed media source, an inventory scan and a create-only backup
+service. `DcimCloudSync.Storage.Azure` implements the backup destination with Azure Blob Storage and is
+referenced only by the Windows target. Android media access, device credentials, background work and
+persistence do not exist yet.
 
-- Build from `DcimCloudSync.slnx`; central SDK, build and package policy lives in the root files.
+- Build from `android-dcim-cloud-sync.slnx`, named after the repository; central SDK, build and package policy lives in the root files.
 - Keep `net10.0-android`, minimum API 33 and application ID
   `io.github.f2calv.androiddcimcloudsync`.
+- Keep the Windows target development-only: add it only when building on Windows and keep it
+  unpackaged. CI publishes it only as a short-lived, self-contained test artifact; never release or
+  distribute it.
+- Keep Azure SDK and `CasCap.Api.Azure.Storage` references inside `DcimCloudSync.Storage.Azure`.
+  Debug references the sibling `CasCap.Api.Azure` checkout; Release uses the published package.
+- Backups are create-only: never overwrite or delete a blob, and report hash conflicts instead.
+- Integration tests use Azurite from the root `docker-compose.yml` and per-test containers.
 - Keep `android:allowBackup="false"`.
 - The manifest declares only Internet and network-state permissions. Add no media or background
   permission before the requiring behavior and privacy documentation exist.
-- Keep Android CI compilation, device deployment, signing, packaging and Play publishing deferred.
+- Keep device deployment, signing and Play publishing deferred; CI builds unsigned artifacts only.
 - Preserve the tracked Visual Studio scaffold rather than replacing the application project.
 
 ## Architecture Boundaries

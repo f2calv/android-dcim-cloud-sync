@@ -7,8 +7,8 @@ applyTo: '**/*.cs,**/*.xaml,**/AndroidManifest.xml'
 
 ## Platform Scope
 
-- Target .NET 10 Android first. Do not add iOS, macOS or Windows targets without explicit user approval.
-- Keep Android APIs behind an interface and place implementations under `Platforms/Android` or an Android-specific project.
+- Target .NET 10 Android as the product platform. Windows is a development-only target for debugging services and UI; do not add iOS or macOS targets without explicit user approval.
+- Keep platform-neutral contracts and services in `DcimCloudSync.Core`. Keep Android APIs behind an interface and place implementations under `Platforms/Android` or an Android-specific project; register platform services from the platform's `MauiProgram` partial.
 - Keep view code focused on rendering, navigation and user interaction. Backup orchestration and provider calls belong in services.
 - Dispatch only UI updates to the main thread. Discovery, hashing, persistence and upload work must stay off it.
 

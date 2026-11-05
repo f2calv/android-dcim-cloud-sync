@@ -3,12 +3,5 @@
     x:Class="DcimCloudSync.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:pages="clr-namespace:DcimCloudSync.Pages"
     FlyoutBehavior="Disabled"
-    Title="Android DCIM Cloud Sync">
-
-    <ShellContent
-        ContentTemplate="{DataTemplate pages:MainPage}"
-        Title="Status"
-        Route="main" />
-</Shell>
+    Title="Android DCIM Cloud Sync" />

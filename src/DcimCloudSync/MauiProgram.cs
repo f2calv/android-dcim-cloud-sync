@@ -3,7 +3,7 @@
 /// <summary>
 /// Configures and creates the MAUI application host.
 /// </summary>
-public static class MauiProgram
+public static partial class MauiProgram
 {
     /// <summary>
     /// Creates the configured MAUI application.
@@ -13,6 +13,8 @@ public static class MauiProgram
     {
         var builder = MauiApp.CreateBuilder();
         builder.UseMauiApp<App>();
+        builder.Services.AddTransient<MainPage>();
+        AddPlatformServices(builder);
 
 #if DEBUG
         builder.Logging.AddDebug();
@@ -20,4 +22,10 @@ public static class MauiProgram
 
         return builder.Build();
     }
+
+    /// <summary>
+    /// Registers the services implemented by the current platform, if it implements any.
+    /// </summary>
+    /// <param name="builder">The application builder.</param>
+    static partial void AddPlatformServices(MauiAppBuilder builder);
 }

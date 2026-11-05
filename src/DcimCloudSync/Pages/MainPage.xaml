@@ -21,15 +21,52 @@
                 Text="Current status"
                 SemanticProperties.HeadingLevel="Level2" />
             <Label
-                Text="Backup features are not implemented. This app does not discover media, store credentials, upload files, or run background work."
-                SemanticProperties.Description="Current status. Backup features are not implemented." />
+                Text="Backup is a development preview. Nothing runs in the background, and no files are deleted."
+                SemanticProperties.Description="Current status. Backup is a development preview." />
+            <VerticalStackLayout
+                x:Name="MediaSection"
+                IsVisible="False"
+                Spacing="12">
+                <Label
+                    Margin="0,12,0,0"
+                    Style="{StaticResource SectionTitleLabelStyle}"
+                    Text="Media"
+                    SemanticProperties.HeadingLevel="Level2" />
+                <Label
+                    Text="Scan reads and hashes every photo and video in the development media folder. Back up copies each one to the configured destination once and never overwrites an existing backup." />
+                <HorizontalStackLayout Spacing="12">
+                    <Button
+                        x:Name="ScanButton"
+                        Text="Scan media"
+                        Clicked="OnScanClicked"
+                        SemanticProperties.Hint="Reads and hashes every photo and video in the development media folder" />
+                    <Button
+                        x:Name="BackUpButton"
+                        Text="Back up"
+                        IsVisible="False"
+                        Clicked="OnBackUpClicked"
+                        SemanticProperties.Hint="Copies every photo and video that has no backup to the configured destination" />
+                    <Button
+                        x:Name="CancelButton"
+                        Text="Cancel"
+                        IsEnabled="False"
+                        Clicked="OnCancelClicked"
+                        SemanticProperties.Hint="Cancels the current scan or backup" />
+                </HorizontalStackLayout>
+                <ActivityIndicator
+                    x:Name="ActivityIndicator"
+                    IsRunning="False"
+                    IsVisible="False"
+                    SemanticProperties.Description="Operation in progress" />
+                <Label x:Name="StatusLabel" />
+            </VerticalStackLayout>
             <Label
                 Margin="0,12,0,0"
                 Style="{StaticResource SectionTitleLabelStyle}"
                 Text="Learning surface"
                 SemanticProperties.HeadingLevel="Level2" />
             <Label
-                Text="Use this page to explore XAML layout, centralized theme-aware styles, and Android debugging before product features are added." />
+                Text="Use this page to explore XAML layout, centralized theme-aware styles, and debugging on Windows or Android before product features are added." />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
