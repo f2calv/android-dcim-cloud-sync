@@ -1,7 +1,7 @@
 # Architecture
 
-Android is the product platform but currently displays only status. Windows provides a
-development-only media scan and backup client; it does not establish Android media support.
+Android is the product platform and scans DCIM media through MediaStore, but cannot back up yet.
+Windows provides a development-only media scan and backup client.
 The [System Context](../README.md#system-context) describes that boundary.
 
 ## Containers
@@ -9,14 +9,16 @@ The [System Context](../README.md#system-context) describes that boundary.
 ```mermaid
 flowchart LR
     subgraph Application["Android DCIM Cloud Sync"]
-        Android["Android MAUI client: static status"]
+        Android["Android MAUI client: DCIM scan"]
         Windows["Windows MAUI development client"]
     end
+    MediaStore["Android MediaStore: DCIM rows"] -->|Original bytes, with permission| Android
     Folder["Development media folder"] -->|Read-only file streams| Windows
     Windows -->|Create-only blobs and SHA-256 metadata| Storage["Azurite or configured Azure Blob Storage"]
 ```
 
-The clients run separately. Android has no media source, backup destination or device credentials.
+The clients run separately. Android has a media source but no backup destination; how it will
+authorize uploads is proposed in [ADR 0001](adr-0001-device-credentials.md).
 Windows activates backup controls only when a destination connection string is configured.
 
 ## Dependency Graph

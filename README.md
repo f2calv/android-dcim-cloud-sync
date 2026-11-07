@@ -38,12 +38,13 @@ Android backup, device credentials, background scheduling, retries and deletion 
 ```mermaid
 flowchart LR
     Developer["Developer"] --> App["Android DCIM Cloud Sync"]
+    Phone["Android DCIM media"] -->|Android discovery and reads, with permission| App
     Folder["Synthetic development media folder"] -->|Windows-only discovery and reads| App
     App -->|Windows-only create-only uploads and hash metadata| Storage["Azurite or configured Azure Blob Storage"]
 ```
 
-The Android page remains static. The Windows development target is the only runtime that reads
-media or uploads backups. See the [architecture, dependencies and validation flow](docs/architecture.md).
+Android reads DCIM media for scans; the Windows development target is the only runtime that uploads
+backups. [ADR 0001](docs/adr-0001-device-credentials.md) proposes how Android will authorize uploads. See the [architecture, dependencies and validation flow](docs/architecture.md).
 
 ## Local Development
 
