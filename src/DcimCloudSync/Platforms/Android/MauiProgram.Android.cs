@@ -23,10 +23,14 @@ public static partial class MauiProgram
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<IMediaAccess, AndroidMediaAccess>();
         builder.Services.AddSingleton<IMediaSource, MediaStoreMediaSource>();
+        builder.Services.AddSingleton<IBackupCheckpointStore, PreferencesBackupCheckpointStore>();
         builder.Services.AddSingleton<MediaInventoryService>();
         builder.Services.AddSingleton<IAccessTokenProvider, MsalAccessTokenProvider>();
         builder.Services.AddSingleton<IBackupDestination, AzureBlobBackupDestination>();
         builder.Services.AddSingleton<BackupService>();
+        builder.Services.AddSingleton<IBackgroundBackupScheduler, WorkManagerBackupScheduler>();
+        builder.Services.AddSingleton<BackupNotifier>();
+        builder.Services.AddSingleton<BackgroundBackupRunner>();
         builder.Services.AddSingleton<IBackupSettingsStore, PreferencesBackupSettingsStore>();
         builder.Services.AddTransient<SettingsPage>();
     }

@@ -3,6 +3,7 @@ using Android.Content.PM;
 using Android.OS;
 using Android.Provider;
 using Microsoft.Maui.ApplicationModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 
 namespace DcimCloudSync.Services;
@@ -15,11 +16,16 @@ namespace DcimCloudSync.Services;
 /// pending and trashed rows are excluded by MediaStore. When the app holds <c>ACCESS_MEDIA_LOCATION</c>, content opens
 /// through <see cref="MediaStore.SetRequireOriginal(global::Android.Net.Uri)"/> and accepts the original format, so photo
 /// location is kept and HEVC video is not transcoded; otherwise MediaStore returns location-redacted bytes. Only the rows
-/// the user granted access to are visible. Content URIs and display names are never logged.
+/// the user granted access to are visible. Content URIs and display names are never logged. Change tracking uses each
+/// volume's MediaStore generation: a token records the version and generation of every external volume, and a later query
+/// lists rows whose <c>generation_modified</c> is newer. A volume whose version changed, because its index was rebuilt, or
+/// that the token does not name is listed in full.
 /// </remarks>
-public sealed class MediaStoreMediaSource : IMediaSource
+public sealed class MediaStoreMediaSource : IChangeTrackingMediaSource
 {
     private const string AnyMimeType = "*/*";
+    private const char TokenVolumeSeparator = '\n';
+    private const char TokenFieldSeparator = '|';
 
     private static readonly string[] Projection =
     [
@@ -32,19 +38,39 @@ public sealed class MediaStoreMediaSource : IMediaSource
     ];
 
     /// <inheritdoc/>
-    public async IAsyncEnumerable<MediaItem> DiscoverAsync([EnumeratorCancellation] CancellationToken cancellationToken)
+    public IAsyncEnumerable<MediaItem> DiscoverAsync(CancellationToken cancellationToken) =>
+        DiscoverSinceAsync(new Dictionary<string, long>(StringComparer.Ordinal), cancellationToken);
+
+    /// <inheritdoc/>
+    public string GetChangeToken()
     {
         var context = Platform.AppContext;
-        foreach (var volumeName in MediaStore.GetExternalVolumeNames(context))
-        {
-            foreach (var collection in new[] { MediaStoreItemPath.ImagesCollection, MediaStoreItemPath.VideoCollection })
-            {
-                foreach (var item in Query(context.ContentResolver!, volumeName, collection, cancellationToken))
-                    yield return item;
+        return string.Join(
+            TokenVolumeSeparator,
+            MediaStore.GetExternalVolumeNames(context).Select(volumeName => string.Join(
+                TokenFieldSeparator,
+                volumeName,
+                MediaStore.GetVersion(context, volumeName),
+                MediaStore.GetGeneration(context, volumeName).ToString(CultureInfo.InvariantCulture))));
+    }
 
-                await Task.Yield();
-            }
+    /// <inheritdoc/>
+    public IAsyncEnumerable<MediaItem> DiscoverChangedAsync(string sinceToken, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(sinceToken);
+        var context = Platform.AppContext;
+        var generations = new Dictionary<string, long>(StringComparer.Ordinal);
+        foreach (var volume in sinceToken.Split(TokenVolumeSeparator, StringSplitOptions.RemoveEmptyEntries))
+        {
+            var fields = volume.Split(TokenFieldSeparator);
+            if (fields.Length == 3
+                && long.TryParse(fields[2], NumberStyles.None, CultureInfo.InvariantCulture, out var generation)
+                && MediaStore.GetExternalVolumeNames(context).Contains(fields[0])
+                && string.Equals(MediaStore.GetVersion(context, fields[0]), fields[1], StringComparison.Ordinal))
+                generations[fields[0]] = generation;
         }
+
+        return DiscoverSinceAsync(generations, cancellationToken);
     }
 
     /// <inheritdoc/>
@@ -90,15 +116,47 @@ public sealed class MediaStoreMediaSource : IMediaSource
         }
     }
 
+    private static async IAsyncEnumerable<MediaItem> DiscoverSinceAsync(
+        Dictionary<string, long> generations,
+        [EnumeratorCancellation] CancellationToken cancellationToken)
+    {
+        var context = Platform.AppContext;
+        foreach (var volumeName in MediaStore.GetExternalVolumeNames(context))
+        {
+            long? sinceGeneration = generations.TryGetValue(volumeName, out var generation) ? generation : null;
+            foreach (var collection in new[] { MediaStoreItemPath.ImagesCollection, MediaStoreItemPath.VideoCollection })
+            {
+                foreach (var item in Query(context.ContentResolver!, volumeName, collection, sinceGeneration, cancellationToken))
+                    yield return item;
+
+                await Task.Yield();
+            }
+        }
+    }
+
     private static IEnumerable<MediaItem> Query(
         ContentResolver resolver,
         string volumeName,
         string collection,
+        long? sinceGeneration,
         CancellationToken cancellationToken)
     {
         using var queryArguments = new Bundle();
-        queryArguments.PutString(ContentResolver.QueryArgSqlSelection, $"{MediaStore.IMediaColumns.RelativePath} LIKE ?");
-        queryArguments.PutStringArray(ContentResolver.QueryArgSqlSelectionArgs, [$"{MediaStoreItemPath.DcimPrefix}%"]);
+        if (sinceGeneration is { } generation)
+        {
+            queryArguments.PutString(
+                ContentResolver.QueryArgSqlSelection,
+                $"{MediaStore.IMediaColumns.RelativePath} LIKE ? AND {MediaStore.IMediaColumns.GenerationModified} > ?");
+            queryArguments.PutStringArray(
+                ContentResolver.QueryArgSqlSelectionArgs,
+                [$"{MediaStoreItemPath.DcimPrefix}%", generation.ToString(CultureInfo.InvariantCulture)]);
+        }
+        else
+        {
+            queryArguments.PutString(ContentResolver.QueryArgSqlSelection, $"{MediaStore.IMediaColumns.RelativePath} LIKE ?");
+            queryArguments.PutStringArray(ContentResolver.QueryArgSqlSelectionArgs, [$"{MediaStoreItemPath.DcimPrefix}%"]);
+        }
+
         queryArguments.PutString(ContentResolver.QueryArgSqlSortOrder, $"{IBaseColumns.Id} ASC");
         using var cancellationSignal = new CancellationSignal();
         using var registration = cancellationToken.Register(static signal => ((CancellationSignal)signal!).Cancel(), cancellationSignal);

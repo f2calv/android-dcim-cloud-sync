@@ -10,6 +10,7 @@ namespace DcimCloudSync.Models;
 /// <param name="PhotoPrefix">The blob name prefix for photos.</param>
 /// <param name="VideoPrefix">The blob name prefix for videos.</param>
 /// <param name="AccessTier">The access tier for new backups, or an empty string for the account default.</param>
+/// <param name="AutomaticBackup">Whether new photos and videos are backed up in the background on unmetered networks.</param>
 public sealed record BackupSettings(
     string TenantId,
     string ClientId,
@@ -17,4 +18,5 @@ public sealed record BackupSettings(
     string ContainerName,
     string PhotoPrefix,
     string VideoPrefix,
-    string AccessTier);
+    string AccessTier,
+    bool AutomaticBackup);

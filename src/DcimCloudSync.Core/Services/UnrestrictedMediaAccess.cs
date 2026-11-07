@@ -7,4 +7,7 @@ public sealed class UnrestrictedMediaAccess : IMediaAccess
 {
     /// <inheritdoc/>
     public Task<MediaAccessStatus> RequestAccessAsync() => Task.FromResult(MediaAccessStatus.Unrestricted);
+
+    /// <inheritdoc/>
+    public MediaAccessStatus GetStatus() => MediaAccessStatus.Unrestricted;
 }

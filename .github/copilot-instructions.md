@@ -18,7 +18,8 @@ exists only for debugging services on a workstation. `DcimCloudSync.Core` holds 
 media and backup contracts, a folder-backed media source, an inventory scan and a create-only backup
 service. `DcimCloudSync.Storage.Azure` implements the backup destination with Azure Blob Storage: a
 connection string on Windows, or on Android an MSAL access token for a no-delete role, as decided in
-`docs/adr-0001-device-credentials.md`. Background work and local backup state do not exist yet.
+`docs/adr-0001-device-credentials.md`. On Android, WorkManager runs incremental background backups from
+a MediaStore change checkpoint; there is no per-item queue or local backup state.
 
 - Keep MSAL inside `Platforms/Android`; core and the Azure provider see only `IAccessTokenProvider`.
   Never enable the authentication broker, and never package tenant, client, account or container values.
@@ -34,9 +35,13 @@ connection string on Windows, or on Android an MSAL access token for a no-delete
 - Backups are create-only: never overwrite or delete a blob, and report hash conflicts instead.
 - Integration tests use Azurite from the root `docker-compose.yml` and per-test containers.
 - Keep `android:allowBackup="false"`.
-- The manifest declares the visual-media permissions, `ACCESS_MEDIA_LOCATION`, Internet and network
-  state. Add no other permission, and never `MANAGE_EXTERNAL_STORAGE`, before the requiring behavior
-  and privacy documentation exist.
+- The manifest declares the visual-media permissions, `ACCESS_MEDIA_LOCATION`, Internet, network
+  state and `POST_NOTIFICATIONS`; WorkManager's library adds its own. Add no other permission, and never
+  `MANAGE_EXTERNAL_STORAGE`, before the requiring behavior and privacy documentation exist.
+- Background runs must never prompt: wrap them in `InteractiveSignIn.Suppress()` and surface
+  `SignInRequiredException` as a notification. Notifications carry counts and sizes only.
+- Bump `Xamarin.AndroidX.Work.Runtime` only together with `Microsoft.Maui.Controls`; a newer WorkManager
+  pulls AndroidX Lifecycle versions outside MAUI's ranges and restore fails with NU1608.
 - Keep device deployment, signing and Play publishing deferred; CI builds unsigned artifacts only.
 - Preserve the tracked Visual Studio scaffold rather than replacing the application project.
 

@@ -4,8 +4,9 @@ namespace DcimCloudSync.Abstractions;
 /// Acquires access tokens for a signed-in user, prompting for sign-in only when no cached token can be renewed.
 /// </summary>
 /// <remarks>
-/// Failures that need the user, such as an expired sign-in while no screen is in the foreground, surface as
-/// <see cref="Exceptions.BackupDestinationException"/> so a backup run stops instead of retrying.
+/// Failures that need the user, such as an expired sign-in while no screen is in the foreground or prompts are suppressed by
+/// <see cref="Services.InteractiveSignIn"/>, surface as <see cref="Exceptions.SignInRequiredException"/> so a backup run stops
+/// instead of retrying.
 /// </remarks>
 public interface IAccessTokenProvider
 {

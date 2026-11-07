@@ -6,27 +6,83 @@ namespace DcimCloudSync.Services;
 /// <remarks>
 /// Each item is hashed first, then compared with its existing backup, so a rerun uploads only missing items and an
 /// interrupted run resumes without local state. The upload re-hashes the content as it streams and fails before commit when
-/// the item changed after hashing. Logs contain counts and outcomes only, never item names or paths.
+/// the item changed after hashing. Runs are serialized, so a run started while another is in progress, such as a background
+/// run and a manual one, waits for it. With a change-tracking source and a checkpoint store, a run that read every item it
+/// discovered records a checkpoint, and <see cref="BackUpChangesAsync"/> then reads only items changed since. Logs contain
+/// counts and outcomes only, never item names or paths.
 /// </remarks>
+/// <param name="logger">The logger.</param>
+/// <param name="timeProvider">The clock for run durations.</param>
+/// <param name="mediaSource">The media source; implement <see cref="IChangeTrackingMediaSource"/> to allow incremental runs.</param>
+/// <param name="backupDestination">The backup destination.</param>
+/// <param name="checkpointStore">Persists the incremental checkpoint, or <see langword="null"/> to always run in full.</param>
 public sealed partial class BackupService(
     ILogger<BackupService> logger,
     TimeProvider timeProvider,
     IMediaSource mediaSource,
-    IBackupDestination backupDestination)
+    IBackupDestination backupDestination,
+    IBackupCheckpointStore? checkpointStore = null) : IDisposable
 {
+    private readonly SemaphoreSlim _runLock = new(1, 1);
+
     /// <summary>
     /// Gets a value indicating whether the backup destination is configured, so a run can start.
     /// </summary>
     public bool IsAvailable => backupDestination.IsConfigured;
 
     /// <summary>
-    /// Backs up every item visible to the media source.
+    /// Backs up every item visible to the media source, after any run already in progress completes.
     /// </summary>
     /// <param name="progress">Receives a report after each item, or <see langword="null"/>.</param>
-    /// <param name="cancellationToken">Cancels the run between and during reads and uploads.</param>
+    /// <param name="cancellationToken">Cancels the wait for another run, and the run between and during reads and uploads.</param>
     /// <returns>A summary that identifies no individual item.</returns>
     /// <exception cref="Exceptions.BackupDestinationException">The destination failed; the run stops.</exception>
-    public async Task<BackupSummary> BackUpAsync(IProgress<BackupProgress>? progress, CancellationToken cancellationToken)
+    public Task<BackupSummary> BackUpAsync(IProgress<BackupProgress>? progress, CancellationToken cancellationToken) =>
+        RunExclusiveAsync(incremental: false, progress, cancellationToken);
+
+    /// <summary>
+    /// Backs up the items added or modified since the last recorded checkpoint, or every item when there is none.
+    /// </summary>
+    /// <param name="progress">Receives a report after each item, or <see langword="null"/>.</param>
+    /// <param name="cancellationToken">Cancels the wait for another run, and the run between and during reads and uploads.</param>
+    /// <returns>A summary that identifies no individual item.</returns>
+    /// <exception cref="Exceptions.BackupDestinationException">The destination failed; the run stops.</exception>
+    public Task<BackupSummary> BackUpChangesAsync(IProgress<BackupProgress>? progress, CancellationToken cancellationToken) =>
+        RunExclusiveAsync(incremental: true, progress, cancellationToken);
+
+    /// <inheritdoc/>
+    public void Dispose() => _runLock.Dispose();
+
+    private async Task<BackupSummary> RunExclusiveAsync(bool incremental, IProgress<BackupProgress>? progress, CancellationToken cancellationToken)
+    {
+        await _runLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var trackingSource = checkpointStore is null ? null : mediaSource as IChangeTrackingMediaSource;
+            var startToken = trackingSource?.GetChangeToken();
+            var sinceToken = incremental ? checkpointStore?.Load() : null;
+            var items = trackingSource is not null && sinceToken is not null
+                ? trackingSource.DiscoverChangedAsync(sinceToken, cancellationToken)
+                : mediaSource.DiscoverAsync(cancellationToken);
+
+            var summary = await RunAsync(items, sinceToken is not null, progress, cancellationToken).ConfigureAwait(false);
+
+            // An unreadable item would be skipped for good if the checkpoint moved past it.
+            if (startToken is not null && summary.UnreadableCount == 0)
+                checkpointStore!.Save(startToken);
+            return summary;
+        }
+        finally
+        {
+            _ = _runLock.Release();
+        }
+    }
+
+    private async Task<BackupSummary> RunAsync(
+        IAsyncEnumerable<MediaItem> items,
+        bool incremental,
+        IProgress<BackupProgress>? progress,
+        CancellationToken cancellationToken)
     {
         var startedAt = timeProvider.GetTimestamp();
         var counts = new Dictionary<BackupItemOutcome, int>();
@@ -34,7 +90,7 @@ public sealed partial class BackupService(
         var unreadableCount = 0;
         var uploadedBytes = 0L;
 
-        await foreach (var item in mediaSource.DiscoverAsync(cancellationToken).ConfigureAwait(false))
+        await foreach (var item in items.ConfigureAwait(false))
         {
             itemCount++;
             try
@@ -74,6 +130,7 @@ public sealed partial class BackupService(
         LogRunCompleted(
             logger,
             nameof(BackupService),
+            incremental,
             summary.ItemCount,
             summary.UploadedCount,
             summary.AlreadyBackedUpCount,
@@ -131,10 +188,11 @@ public sealed partial class BackupService(
 
     [LoggerMessage(
         Level = LogLevel.Information,
-        Message = "{ClassName} backup completed ItemCount={ItemCount} UploadedCount={UploadedCount} AlreadyBackedUpCount={AlreadyBackedUpCount} ConflictCount={ConflictCount} UnverifiedCount={UnverifiedCount} ChangedCount={ChangedCount} UnreadableCount={UnreadableCount} Elapsed={Elapsed}")]
+        Message = "{ClassName} backup completed Incremental={Incremental} ItemCount={ItemCount} UploadedCount={UploadedCount} AlreadyBackedUpCount={AlreadyBackedUpCount} ConflictCount={ConflictCount} UnverifiedCount={UnverifiedCount} ChangedCount={ChangedCount} UnreadableCount={UnreadableCount} Elapsed={Elapsed}")]
     private static partial void LogRunCompleted(
         ILogger logger,
         string className,
+        bool incremental,
         int itemCount,
         int uploadedCount,
         int alreadyBackedUpCount,

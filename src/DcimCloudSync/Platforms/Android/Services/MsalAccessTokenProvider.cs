@@ -10,7 +10,9 @@ namespace DcimCloudSync.Services;
 /// </summary>
 /// <remarks>
 /// The authentication broker is deliberately not enabled, so a device-management broker on a work profile cannot replace
-/// the owner's account. Interactive sign-in uses the system browser and returns through <see cref="RedirectUri"/>. MSAL
+/// the owner's account. Interactive sign-in uses the system browser and returns through <see cref="RedirectUri"/>; it never
+/// starts without a foreground activity or inside an <see cref="InteractiveSignIn"/> suppression scope, and raises
+/// <see cref="SignInRequiredException"/> instead. MSAL
 /// persists its token cache in app-private storage; mobile platforms do not support custom cache serialization.
 /// </remarks>
 /// <param name="config">The tenant and client identifiers entered on the device.</param>
@@ -60,8 +62,8 @@ public sealed class MsalAccessTokenProvider(IOptionsMonitor<EntraConfig> config)
             throw new BackupDestinationException($"Sign-in failed ({ex.ErrorCode}).", ex);
         }
 
-        if (Platform.CurrentActivity is not { } activity)
-            throw new BackupDestinationException("Sign-in is required. Open the app and back up again.", new InvalidOperationException());
+        if (InteractiveSignIn.IsSuppressed || Platform.CurrentActivity is not { } activity)
+            throw new SignInRequiredException();
 
         try
         {

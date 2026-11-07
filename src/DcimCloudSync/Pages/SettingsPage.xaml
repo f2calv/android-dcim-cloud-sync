@@ -54,6 +54,17 @@
                 Keyboard="Text"
                 SemanticProperties.Description="Access tier" />
 
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <Label
+                    Text="Back up new photos and videos automatically on Wi-Fi, with a notification when something is backed up"
+                    VerticalOptions="Center" />
+                <Switch
+                    x:Name="AutomaticBackupSwitch"
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    SemanticProperties.Description="Back up new photos and videos automatically on Wi-Fi" />
+            </Grid>
+
             <HorizontalStackLayout Spacing="12">
                 <Button
                     Text="Save"

@@ -10,12 +10,18 @@ namespace DcimCloudSync.Services;
 /// <param name="preferences">The preference store.</param>
 /// <param name="configuration">The configuration provider to reload after saving.</param>
 /// <param name="tokenProvider">The token provider to sign out of.</param>
+/// <param name="scheduler">The background backup scheduler to update after saving.</param>
+/// <param name="checkpointStore">The incremental checkpoint, cleared when the destination changes.</param>
 public sealed class PreferencesBackupSettingsStore(
     IPreferences preferences,
     PreferencesConfigurationProvider configuration,
-    IAccessTokenProvider tokenProvider)
+    IAccessTokenProvider tokenProvider,
+    IBackgroundBackupScheduler scheduler,
+    IBackupCheckpointStore checkpointStore)
     : IBackupSettingsStore
 {
+    // Read by the app only, so it is not one of the configuration keys.
+    private const string AutomaticBackupKey = "Backup:AutomaticBackup";
     private const string TenantIdKey = EntraConfig.ConfigurationSectionName + ":" + nameof(EntraConfig.TenantId);
     private const string ClientIdKey = EntraConfig.ConfigurationSectionName + ":" + nameof(EntraConfig.ClientId);
     private const string BlobServiceUriKey = AzureBlobBackupConfig.ConfigurationSectionName + ":" + nameof(AzureBlobBackupConfig.BlobServiceUri);
@@ -47,7 +53,8 @@ public sealed class PreferencesBackupSettingsStore(
             preferences.Get(ContainerNameKey, defaults.ContainerName),
             preferences.Get(PhotoPrefixKey, defaults.PhotoPrefix),
             preferences.Get(VideoPrefixKey, defaults.VideoPrefix),
-            preferences.Get(AccessTierKey, string.Empty));
+            preferences.Get(AccessTierKey, string.Empty),
+            preferences.Get(AutomaticBackupKey, true));
     }
 
     /// <inheritdoc/>
@@ -69,6 +76,14 @@ public sealed class PreferencesBackupSettingsStore(
         if (errors.Count > 0)
             return errors;
 
+        // Items backed up to the previous destination must be checked against the new one.
+        var previous = Load();
+        if (previous.BlobServiceUri != trimmed.BlobServiceUri
+            || previous.ContainerName != trimmed.ContainerName
+            || previous.PhotoPrefix != trimmed.PhotoPrefix
+            || previous.VideoPrefix != trimmed.VideoPrefix)
+            checkpointStore.Clear();
+
         preferences.Set(TenantIdKey, trimmed.TenantId);
         preferences.Set(ClientIdKey, trimmed.ClientId);
         preferences.Set(BlobServiceUriKey, trimmed.BlobServiceUri);
@@ -76,7 +91,9 @@ public sealed class PreferencesBackupSettingsStore(
         preferences.Set(PhotoPrefixKey, trimmed.PhotoPrefix);
         preferences.Set(VideoPrefixKey, trimmed.VideoPrefix);
         preferences.Set(AccessTierKey, trimmed.AccessTier);
+        preferences.Set(AutomaticBackupKey, trimmed.AutomaticBackup);
         configuration.Reload();
+        scheduler.Apply(trimmed.AutomaticBackup);
         return [];
     }
 

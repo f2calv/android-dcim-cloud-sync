@@ -75,6 +75,8 @@ public sealed partial class MainPage : ContentPage
         if (_backupSvc is not { } backupSvc)
             return;
 
+        // Automatic backups default to on, so ask here too for installs whose settings predate them.
+        _ = await Permissions.RequestAsync<Permissions.PostNotifications>();
         await RunAsync<BackupProgress, BackupSummary>(
             "Backing up…",
             backupSvc.BackUpAsync,

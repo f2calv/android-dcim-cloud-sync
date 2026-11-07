@@ -1,4 +1,5 @@
 using Microsoft.Maui.Accessibility;
+using Microsoft.Maui.ApplicationModel;
 
 namespace DcimCloudSync.Pages;
 
@@ -33,10 +34,12 @@ public sealed partial class SettingsPage : ContentPage
         PhotoPrefixEntry.Text = settings.PhotoPrefix;
         VideoPrefixEntry.Text = settings.VideoPrefix;
         AccessTierEntry.Text = settings.AccessTier;
+        AutomaticBackupSwitch.IsToggled = settings.AutomaticBackup;
     }
 
-    private void OnSaveClicked(object? sender, EventArgs e)
+    private async void OnSaveClicked(object? sender, EventArgs e)
     {
+        var automaticBackup = AutomaticBackupSwitch.IsToggled;
         var errors = _settingsStore.Save(new BackupSettings(
             TenantIdEntry.Text ?? string.Empty,
             ClientIdEntry.Text ?? string.Empty,
@@ -44,8 +47,17 @@ public sealed partial class SettingsPage : ContentPage
             ContainerNameEntry.Text ?? string.Empty,
             PhotoPrefixEntry.Text ?? string.Empty,
             VideoPrefixEntry.Text ?? string.Empty,
-            AccessTierEntry.Text ?? string.Empty));
-        ShowStatus(errors.Count == 0 ? "Saved." : string.Join(" ", errors));
+            AccessTierEntry.Text ?? string.Empty,
+            automaticBackup));
+        if (errors.Count > 0)
+        {
+            ShowStatus(string.Join(" ", errors));
+            return;
+        }
+
+        var notificationsAllowed = !automaticBackup
+            || await Permissions.RequestAsync<Permissions.PostNotifications>() == PermissionStatus.Granted;
+        ShowStatus(notificationsAllowed ? "Saved." : "Saved. Notifications are off, so automatic backups run without a summary.");
     }
 
     private async void OnSignOutClicked(object? sender, EventArgs e)

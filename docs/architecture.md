@@ -9,10 +9,11 @@ The [System Context](../README.md#system-context) describes that boundary.
 ```mermaid
 flowchart LR
     subgraph Application["Android DCIM Cloud Sync"]
-        Android["Android MAUI client: DCIM scan and backup"]
+        Android["Android MAUI client: DCIM scan, manual and background backup"]
         Windows["Windows MAUI development client"]
     end
     MediaStore["Android MediaStore: DCIM rows"] -->|Original bytes, with permission| Android
+    WorkManager["Android WorkManager"] -->|New-media and periodic runs| Android
     Folder["Development media folder"] -->|Read-only file streams| Windows
     Windows -->|Create-only blobs and SHA-256 metadata| Storage["Azurite or configured Azure Blob Storage"]
     Android -->|Sign-in and silent token refresh| Entra["Microsoft Entra ID"]
@@ -21,7 +22,10 @@ flowchart LR
 
 The clients run separately. Android authorizes uploads with an Entra access token and a no-delete role,
 as decided in [ADR 0001](adr-0001-device-credentials.md), and shows backup controls once its settings
-are saved. Windows activates backup controls only when a destination connection string is configured.
+are saved. While automatic backup is on, WorkManager also starts background runs when DCIM media
+changes and every six hours on unmetered networks; they back up only items changed since the last
+complete run and never prompt for sign-in. Windows activates backup controls only when a destination
+connection string is configured.
 
 ## Dependency Graph
 
@@ -30,6 +34,7 @@ graph LR
     App["DcimCloudSync"] --> Core["DcimCloudSync.Core"]
     App --> Azure["DcimCloudSync.Storage.Azure"]
     App -->|Android only| Msal["Microsoft.Identity.Client"]
+    App -->|Android only| Work["Xamarin.AndroidX.Work.Runtime"]
     Azure --> Core
     Azure -->|Release package; Debug sibling source| Library["CasCap.Api.Azure.Storage 2.0.0"]
     CoreTests["DcimCloudSync.Core.Tests"] --> Core
@@ -46,7 +51,8 @@ publishes a NuGet package.
 The [core README](../src/DcimCloudSync.Core/README.md#contracts-and-services) owns the scan and backup
 flow diagrams. The upload stream verifies its SHA-256 at end-of-stream before the destination can
 commit. Existing blobs are never overwritten; matching, conflicting, unverified and changed content
-have distinct outcomes. A rerun checks the destination again rather than relying on a local queue.
+have distinct outcomes. A rerun checks the destination again rather than relying on a local queue;
+Android background runs keep only a MediaStore change checkpoint to skip unchanged items.
 
 ## Validation Flow
 

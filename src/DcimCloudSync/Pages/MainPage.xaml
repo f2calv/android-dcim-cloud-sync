@@ -21,7 +21,7 @@
                 Text="Current status"
                 SemanticProperties.HeadingLevel="Level2" />
             <Label
-                Text="Backup is a development preview. Nothing runs in the background, and no files are deleted."
+                Text="Backup is a development preview. On Android, new photos and videos are backed up in the background on Wi-Fi while automatic backup is on in Settings. No files are deleted."
                 SemanticProperties.Description="Current status. Backup is a development preview." />
             <VerticalStackLayout
                 x:Name="MediaSection"

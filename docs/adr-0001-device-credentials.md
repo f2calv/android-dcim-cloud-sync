@@ -129,13 +129,27 @@ sequenceDiagram
 - **V5** The package, repository and logs contain no tenant, client, account or container identifiers,
   and no tokens; the repository privacy scans pass.
 
-Progress: V1 was observed on 2026-11-07 against a dedicated test container with the owner's account:
-creating a new blob and reading its properties succeeded, and deleting it was refused. V2 to V5 await an
-interactive sign-in on the emulator.
+Progress on 2026-11-07, against a dedicated test container on the emulator:
+
+- **V1 observed:** creating a new blob and reading its properties succeeded with the owner's account,
+  and deleting it was refused.
+- **V2 observed:**
+  - the owner's personal Microsoft account signed in as a B2B guest through the system browser;
+  - all 13 synthetic items were uploaded, and each blob's `sha256` metadata matched its source file;
+  - the photo with EXIF location downloaded byte-identical, with its GPS block intact.
+- **V3 observed:** after the app process was killed, a WorkManager-started process acquired a token
+  silently from the persisted cache, with no prompt.
+- **V5 observed:**
+  - the repository privacy scan found nothing;
+  - the working tree and the emulator log contained none of the test tenant, account, storage account
+    or container identifiers, and no bearer tokens;
+  - the package carries no identifiers, because they are entered on the device.
+- **V4 outstanding:** it needs a temporary role-assignment removal through the infrastructure code.
 
 Delivery is one branch: the credential adapter and destination constructor, the settings page,
-Android registration of the backup service, then validation V1-V5 on the emulator. Scheduled background
-backup is a separate decision.
+Android registration of the backup service, then validation V1-V5 on the emulator. Background backup
+followed on the same branch: background runs only acquire tokens silently and notify the user when
+sign-in is needed (see the [app README](../src/DcimCloudSync/README.md#background-backup)).
 
 ## Open Questions and Reconsideration
 

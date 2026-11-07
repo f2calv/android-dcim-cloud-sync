@@ -17,7 +17,12 @@ public sealed class AndroidMediaAccess : IMediaAccess
     public async Task<MediaAccessStatus> RequestAccessAsync()
     {
         _ = await MainThread.InvokeOnMainThreadAsync(Permissions.RequestAsync<MediaPermissions>);
+        return GetStatus();
+    }
 
+    /// <inheritdoc/>
+    public MediaAccessStatus GetStatus()
+    {
         var context = Platform.AppContext;
         bool IsGranted(string permission) => context.CheckSelfPermission(permission) == Permission.Granted;
 

@@ -14,4 +14,10 @@ public interface IMediaAccess
     /// </summary>
     /// <returns>The access the user granted.</returns>
     public Task<MediaAccessStatus> RequestAccessAsync();
+
+    /// <summary>
+    /// Gets the access already granted, without prompting, for runs that have no screen to prompt on.
+    /// </summary>
+    /// <returns>The current access.</returns>
+    public MediaAccessStatus GetStatus();
 }
