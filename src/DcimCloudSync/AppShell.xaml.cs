@@ -10,7 +10,8 @@ public sealed partial class AppShell : Shell
     /// </summary>
     /// <param name="page">The constructor-injected status page.</param>
     /// <param name="settingsPage">The settings page, or <see langword="null"/> on platforms configured another way.</param>
-    public AppShell(MainPage page, SettingsPage? settingsPage = null)
+    /// <param name="logPage">The backup log page, or <see langword="null"/> where no backup log is registered.</param>
+    public AppShell(MainPage page, SettingsPage? settingsPage = null, LogPage? logPage = null)
     {
         ArgumentNullException.ThrowIfNull(page);
 
@@ -19,6 +20,8 @@ public sealed partial class AppShell : Shell
         tabs.Items.Add(new ShellContent { Content = page, Route = "main", Title = "Status" });
         if (settingsPage is not null)
             tabs.Items.Add(new ShellContent { Content = settingsPage, Route = "settings", Title = "Settings" });
+        if (logPage is not null)
+            tabs.Items.Add(new ShellContent { Content = logPage, Route = "log", Title = "Log" });
         Items.Add(tabs);
     }
 }

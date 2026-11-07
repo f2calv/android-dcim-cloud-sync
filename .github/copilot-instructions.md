@@ -45,7 +45,9 @@ a MediaStore change checkpoint; there is no per-item queue or local backup state
 - Release builds are trimmed and the app uses the configuration binding source generator. Give bound
   options properties public setters: generated binding silently skips init-only properties. Validate
   Android changes in a Release APK from `build-apk.ps1` as well as in a debug deployment.
-- Keep device deployment, signing and Play publishing deferred; CI builds unsigned artifacts only.
+- Keep device deployment, release signing and Play publishing deferred. CI builds unsigned validation
+  artifacts plus a sideload APK signed with the sideload keystore from repository secrets; never use that
+  keystore for a store release.
 - Preserve the tracked Visual Studio scaffold rather than replacing the application project.
 
 ## Architecture Boundaries

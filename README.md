@@ -1,22 +1,34 @@
 # Android DCIM Cloud Sync
 
-Android DCIM Cloud Sync is a .NET 10 MAUI learning project for a photo and video backup application.
-Android is the product platform. A Windows target exists so services can be developed and debugged on
-a workstation before they are tried on a phone. Backup works only from the Windows development target
-today.
+Android DCIM Cloud Sync is a .NET 10 MAUI app, in development preview, that backs up the photos and
+videos on an Android phone to the owner's Azure Blob Storage container. It signs in with the owner's
+Microsoft account, uploads each file once, never overwrites or deletes, and can back up new media in the
+background. Android is the product platform. A Windows target exists so services can be developed and
+debugged on a workstation before they are tried on a phone.
 
 ## Current Application
 
-The app opens one scrollable **Status** page.
+The app opens on a **Status** page, with a **Log** tab and, on Android, a **Settings** tab.
 
 - **Android 13 or later:** the page adds **Scan media**. On first use Android asks for photo and video
-  access; the scan then reads the DCIM photos and videos the user allows, with their original bytes and
-  location, and reports the same totals as on Windows. Selecting only some photos limits the scan to
-  those, and the result says so. **Back up** appears once the **Settings** tab holds the storage and
-  sign-in details; the first backup opens a Microsoft sign-in in the browser, after which tokens refresh
+  access; the scan then reads the photos and videos in the camera folder, `DCIM/Camera`, that the user
+  allows, with their original bytes and location, and reports the same totals as on Windows. Other DCIM
+  folders, such as those other apps create, are skipped unless **Also back up other DCIM folders** is
+  on in **Settings**. Selecting only some photos limits the scan to those, and the result says so.
+  **Back up** appears once the **Settings** tab holds the storage and sign-in details; the first backup
+  opens a Microsoft sign-in in the browser, after which tokens refresh
   silently. Backups follow the same create-only rules as on Windows. While **automatic backup** is on in
   **Settings**, new DCIM photos and videos are also backed up in the background on Wi-Fi, and a short
   notification summarises each run that backs something up.
+- **Both targets:** while a backup runs, the page names the current file and shows how much of it has been
+  read or uploaded, so a large video visibly progresses. The **Log** tab lists the 25 most recent scan
+  and backup events with file names and sizes, newest first. **Settings** on Android, or
+  `DcimCloudSync__Backup__CheckMode` on Windows, selects the already-backed-up check:
+  - **Quick**, the default, skips an existing backup whose recorded size and modified time match the
+    file, without reading it.
+  - **Full** reads every file and compares its SHA-256.
+
+  Every upload records its SHA-256 either way.
 - **Windows (development only):** the page adds a **Media** section that reads a local folder standing
   in for the phone's DCIM collection.
   - **Scan media** computes a SHA-256 hash of each photo and video and reports the item count, bytes
@@ -84,8 +96,10 @@ dotnet build .\android-dcim-cloud-sync.slnx --configuration Release
 [CI](.github/workflows/ci.yml) produces unsigned Android validation bundles and a self-contained,
 unpackaged Windows development artifact named `DcimCloudSync-windows-x64-<version>`, kept for
 14 days. Download it from the run's **Artifacts** section, extract it and start `DcimCloudSync.exe`;
-no .NET or Windows App SDK install is needed. These are test artifacts, not signed or distributed
-product releases. See the [validation flow](docs/architecture.md#validation-flow).
+no .NET or Windows App SDK install is needed. On `main` and same-repository pull requests, CI also
+builds `android-apk-<version>`, a sideload APK [signed with the sideload keystore](#build-an-apk-for-a-phone),
+kept for 14 days. These are test artifacts, not release-signed or distributed product releases. See
+the [validation flow](docs/architecture.md#validation-flow).
 
 ### Local Azure Storage
 
@@ -144,14 +158,27 @@ phone. To sideload onto a phone without enabling debugging, build a Release APK:
 On Linux or macOS, run `./build-apk.sh` with the same arguments. The
 [script](.scripts/Build-Apk.ps1):
 
-- cleans and publishes a trimmed Release build signed with this machine's Android debug key;
+- cleans and publishes a trimmed Release build;
+- signs it with the sideload keystore when available, otherwise with this machine's Android debug key;
 - sets a version code that grows each minute, and checks that the APK carries it;
-- prints the APK's path and SHA-256.
+- prints the APK's path, SHA-256 and signing key.
 
-Each build uses the same debug key and a higher version code, so it installs over the previous one
-and keeps the sign-in and settings. A build from another machine has a different debug key and
-must be uninstalled first, which deletes the app's data. The APK is for your own devices only:
-it is not release-signed. It contains no settings or credentials.
+Android installs an update only when it is signed with the same key, and keeps the sign-in and
+settings when it does. The sideload keystore lets local and CI builds update each other. The script
+reads it from, in order:
+
+1. `ANDROID_SIGNING_KEYSTORE_BASE64` and `ANDROID_SIGNING_KEYSTORE_PASSWORD`, which CI sets from the
+   `ANDROID_SIDELOAD_KEYSTORE_*` repository secrets;
+2. the Azure Key Vault named by `ANDROID_SIGNING_KEY_VAULT`, through the signed-in Azure CLI, from the
+   secrets `dcim-android-sideload-keystore` (base64 PKCS12) and `dcim-android-sideload-keystore-password`;
+3. otherwise this machine's debug key.
+
+`ANDROID_SIGNING_KEY_ALIAS` overrides the alias, `dcim-sideload`. The signing values reach MSBuild only as
+environment properties during the build, and the temporary keystore file is deleted afterwards.
+Switching an installed app between keys requires uninstalling it first, which deletes its data. The
+APK is for your own devices only: it is not release-signed. It contains no settings or credentials.
+
+To download a CI build instead, open a run's **Artifacts** section and take `android-apk-<version>`.
 
 Copy the APK to the phone, for example through a synced cloud folder or a USB file transfer, and open
 it with **Files**, allowing that app to install unknown apps. Test a Release build on the emulator
@@ -213,8 +240,9 @@ There are no UI automation tests; the page is validated interactively.
 On Android the app reads DCIM photos and videos when the user starts a scan or backup, and, while
 automatic backup is on, when a background run starts. It sends media only to the storage container
 named in **Settings**, signed in as the user. Besides settings in app preferences and sign-in tokens in
-the Microsoft sign-in library's app-private cache, it stores only a MediaStore change checkpoint
-(volume versions and generations, nothing about individual items). Notifications show counts and sizes,
+the Microsoft sign-in library's app-private cache, it stores a MediaStore change checkpoint
+(volume versions and generations, nothing about individual items) and the **Log** tab's 25 most recent
+events, which name files, in an app-private file. Notifications show counts and sizes,
 never file names. No other product data leaves the device. Its
 [Android manifest](src/DcimCloudSync/Platforms/Android/AndroidManifest.xml) declares:
 

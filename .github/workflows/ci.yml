@@ -69,6 +69,54 @@ jobs:
       test-compose-file: docker-compose.yml
       test-compose-services: ${{ matrix.storage && '["azurite"]' || '[]' }}
 
+  #Sideload APK signed with the shared sideload keystore, uploaded as a short-lived artifact for manual installs.
+  #build-apk.ps1 is the same script used locally, so CI and local APKs share signing and version codes and update
+  #each other in place.
+  #TODO: Move this into the shared deploy-maui-android workflow (APK package format, sideload signing and artifact
+  #upload inputs) once it has built reliably across a few releases; it stays local while the approach is proven.
+  #TODO: Read the sideload keystore from Azure Key Vault through GitHub OIDC instead of repository secrets once this
+  #repository has a federated Azure identity; build-apk.ps1 already reads Key Vault through ANDROID_SIGNING_KEY_VAULT.
+  build-apk:
+    needs: [versioning]
+    #Dependabot and fork pull requests receive no secrets, so they cannot sign; the build job still validates them.
+    if: github.actor != 'dependabot[bot]'
+      && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+
+      #Pinned because newer runner images default to a JDK that .NET for Android does not support.
+      - uses: actions/setup-java@v6
+        with:
+          distribution: microsoft
+          java-version: '17'
+
+      - name: dotnet workload restore
+        run: dotnet workload restore src/DcimCloudSync/DcimCloudSync.csproj
+
+      - name: build-apk.ps1
+        shell: pwsh
+        env:
+          ANDROID_SIGNING_KEYSTORE_BASE64: ${{ secrets.ANDROID_SIDELOAD_KEYSTORE_BASE64 }}
+          ANDROID_SIGNING_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_SIDELOAD_KEYSTORE_PASSWORD }}
+        run: ./build-apk.ps1 -OutputDirectory "$env:RUNNER_TEMP/apk"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: android-apk-${{ needs.versioning.outputs.version }}
+          path: ${{ runner.temp }}/apk/*.apk
+          if-no-files-found: error
+          retention-days: 14
+
   #Pester tests for the repository scripts; they mock dotnet, git and adb, so no SDK or device is needed.
   script-tests:
     runs-on: ubuntu-26.04
@@ -94,7 +142,7 @@ jobs:
           if ($result.TotalCount -eq 0 -or $result.FailedCount -gt 0) { exit 1 }
 
   release:
-    needs: [lint, versioning, build, build-windows, tests, script-tests]
+    needs: [lint, versioning, build, build-windows, build-apk, tests, script-tests]
     if: needs.versioning.outputs.release-exists == 'false'
       && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     uses: f2calv/gha-workflows/.github/workflows/gha-release-versioning.yml@v1

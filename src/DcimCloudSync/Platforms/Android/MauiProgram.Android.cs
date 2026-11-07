@@ -19,6 +19,8 @@ public static partial class MauiProgram
         builder.Services.AddOptions<AzureBlobBackupConfig>()
             .Bind(builder.Configuration.GetSection(AzureBlobBackupConfig.ConfigurationSectionName))
             .ValidateDataAnnotations();
+        builder.Services.AddOptions<MediaStoreMediaSourceConfig>()
+            .Bind(builder.Configuration.GetSection(MediaStoreMediaSourceConfig.ConfigurationSectionName));
 
         builder.Services.AddSingleton(TimeProvider.System);
         builder.Services.AddSingleton<IMediaAccess, AndroidMediaAccess>();

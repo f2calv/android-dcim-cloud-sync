@@ -21,8 +21,11 @@ Android or Azure dependency, so it can be developed and tested on any workstatio
 | [`MediaInventoryProgress`](Models/MediaInventoryProgress.cs) | Items processed and bytes read so far |
 | [`MediaInventorySummary`](Models/MediaInventorySummary.cs) | Item count, bytes read, duplicates, unreadable items and elapsed time |
 | [`IBackupDestination`](Abstractions/IBackupDestination.cs) | Finds an item's backup and creates one only when none exists |
-| [`BackupService`](Services/BackupService.cs) | Hashes each item, compares it with its backup and uploads only missing items; runs one at a time, in full or from the last checkpoint |
-| [`BackupRecord`](Models/BackupRecord.cs), [`BackupProgress`](Models/BackupProgress.cs), [`BackupSummary`](Models/BackupSummary.cs), [`BackupItemOutcome`](Models/_Enums.cs) | Existing backup hash, run progress, run summary and per-item outcome |
+| [`BackupService`](Services/BackupService.cs) | Looks up each item's backup, skips unchanged items in quick mode, otherwise hashes and compares, and uploads only missing items; runs one at a time, in full or from the last checkpoint |
+| [`BackupRecord`](Models/BackupRecord.cs), [`BackupProgress`](Models/BackupProgress.cs), [`BackupSummary`](Models/BackupSummary.cs), [`BackupItemOutcome`](Models/_Enums.cs), [`BackupItemPhase`](Models/_Enums.cs) | Existing backup hash, source size and modification time; run and per-item progress; run summary; per-item outcome and phase |
+| [`BackupConfig`](Models/BackupConfig.cs), [`BackupCheckMode`](Models/_Enums.cs) | Binds the `Backup` section; `CheckMode` is `Quick` by default or `Full` |
+| [`IBackupLog`](Abstractions/IBackupLog.cs), [`BackupLogEntry`](Models/BackupLogEntry.cs) | Keeps recent scan and backup events, with file names, for display on the device only |
+| [`ProgressReportingStream`](Services/ProgressReportingStream.cs) | Reports bytes read at least every mebibyte, for hashing and upload progress |
 | [`BackupDestinationException`](Exceptions/BackupDestinationException.cs) | Provider-neutral destination failure; its message holds no item names, paths or endpoints |
 | [`SignInRequiredException`](Exceptions/SignInRequiredException.cs) | Destination failure that needs the user to sign in, because no prompt could be shown |
 | [`MediaChangedException`](Exceptions/MediaChangedException.cs) | Item content changed after hashing; raised by the upload stream before anything is committed |
@@ -46,19 +49,24 @@ message.
 counted within one scan by comparing hashes; nothing is persisted. Cancellation stops discovery
 and the current read.
 
-`BackupService` reads each item twice: once to hash it, then to upload it when no backup exists.
-It never overwrites or deletes. The destination decides each outcome:
+`BackupService` looks up each item's backup first. In `Quick` mode, a backup whose recorded source size
+and modification time match the item is already backed up, and the item is not read. Otherwise the item
+is hashed: an existing backup is compared, and a missing one is uploaded, which reads a new item a second
+time. It never overwrites or deletes. The destination decides each outcome:
 
 ```mermaid
 flowchart LR
-    A[Hash item] --> B{Existing backup?}
+    A[Look up backup] --> Q{Quick mode and size and time match?}
+    Q -- Yes --> E[Already backed up]
+    Q -- No --> H[Hash item]
+    H --> B{Existing backup?}
     B -- No --> C[Create-only upload]
     C -- Created --> D[Uploaded]
     C -- Lost a race --> B
-    B -- Same hash --> E[Already backed up]
+    B -- Same hash --> E
     B -- Different hash --> F[Conflict]
     B -- No recorded hash --> G[Unverified]
-    C -- Content changed --> H[Changed, retried next run]
+    C -- Content changed --> I[Changed, retried next run]
 ```
 
 Because the destination is the record of what is backed up, an interrupted run resumes by
@@ -77,7 +85,8 @@ commit, so no backup with a mismatched hash is created. The item is counted as c
 by the next run. Destinations must therefore read the content to its end before committing.
 
 Item names and paths can identify a person, so logs contain only counts, item ordinal numbers,
-outcomes, byte lengths and exception type names.
+outcomes, byte lengths and exception type names. Progress reports and the optional `IBackupLog` carry
+file names for the app's own screens; hosts keep that log on the device.
 
 ## Configuration
 

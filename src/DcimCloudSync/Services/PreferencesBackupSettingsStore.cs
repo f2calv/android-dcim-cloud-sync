@@ -29,6 +29,8 @@ public sealed class PreferencesBackupSettingsStore(
     private const string PhotoPrefixKey = AzureBlobBackupConfig.ConfigurationSectionName + ":" + nameof(AzureBlobBackupConfig.PhotoPrefix);
     private const string VideoPrefixKey = AzureBlobBackupConfig.ConfigurationSectionName + ":" + nameof(AzureBlobBackupConfig.VideoPrefix);
     private const string AccessTierKey = AzureBlobBackupConfig.ConfigurationSectionName + ":" + nameof(AzureBlobBackupConfig.AccessTier);
+    private const string AllFoldersIncludedKey = MediaStoreMediaSourceConfig.ConfigurationSectionName + ":" + nameof(MediaStoreMediaSourceConfig.AllFoldersIncluded);
+    private const string CheckModeKey = BackupConfig.ConfigurationSectionName + ":" + nameof(BackupConfig.CheckMode);
 
     /// <summary>The configuration keys this store owns.</summary>
     public static readonly IReadOnlyList<string> Keys =
@@ -40,6 +42,8 @@ public sealed class PreferencesBackupSettingsStore(
         PhotoPrefixKey,
         VideoPrefixKey,
         AccessTierKey,
+        AllFoldersIncludedKey,
+        CheckModeKey,
     ];
 
     /// <inheritdoc/>
@@ -54,7 +58,9 @@ public sealed class PreferencesBackupSettingsStore(
             preferences.Get(PhotoPrefixKey, defaults.PhotoPrefix),
             preferences.Get(VideoPrefixKey, defaults.VideoPrefix),
             preferences.Get(AccessTierKey, string.Empty),
-            preferences.Get(AutomaticBackupKey, true));
+            preferences.Get(AutomaticBackupKey, true),
+            bool.TryParse(preferences.Get(AllFoldersIncludedKey, string.Empty), out var allFoldersIncluded) && allFoldersIncluded,
+            Enum.TryParse<BackupCheckMode>(preferences.Get(CheckModeKey, string.Empty), out var checkMode) ? checkMode : BackupCheckMode.Quick);
     }
 
     /// <inheritdoc/>
@@ -76,12 +82,14 @@ public sealed class PreferencesBackupSettingsStore(
         if (errors.Count > 0)
             return errors;
 
-        // Items backed up to the previous destination must be checked against the new one.
+        // Items backed up to the previous destination must be checked against the new one, and a wider folder scope must
+        // read items the checkpoint has already passed.
         var previous = Load();
         if (previous.BlobServiceUri != trimmed.BlobServiceUri
             || previous.ContainerName != trimmed.ContainerName
             || previous.PhotoPrefix != trimmed.PhotoPrefix
-            || previous.VideoPrefix != trimmed.VideoPrefix)
+            || previous.VideoPrefix != trimmed.VideoPrefix
+            || previous.AllFoldersIncluded != trimmed.AllFoldersIncluded)
             checkpointStore.Clear();
 
         preferences.Set(TenantIdKey, trimmed.TenantId);
@@ -92,6 +100,9 @@ public sealed class PreferencesBackupSettingsStore(
         preferences.Set(VideoPrefixKey, trimmed.VideoPrefix);
         preferences.Set(AccessTierKey, trimmed.AccessTier);
         preferences.Set(AutomaticBackupKey, trimmed.AutomaticBackup);
+        // Stored as text because the configuration provider exposes every key as a string.
+        preferences.Set(AllFoldersIncludedKey, trimmed.AllFoldersIncluded ? bool.TrueString : bool.FalseString);
+        preferences.Set(CheckModeKey, trimmed.CheckMode.ToString());
         configuration.Reload();
         scheduler.Apply(trimmed.AutomaticBackup);
         return [];

@@ -4,8 +4,8 @@ namespace DcimCloudSync.Models;
 /// Describes one photo or video discovered by an <see cref="IMediaSource"/>.
 /// </summary>
 /// <remarks>
-/// <see cref="RelativePath"/> and <see cref="DisplayName"/> can identify a person; never log or display them in
-/// diagnostics.
+/// <see cref="RelativePath"/> and <see cref="DisplayName"/> can identify a person; never write them to logs, telemetry or
+/// error messages. Only the on-device <see cref="IBackupLog"/> and the app's own screens may show the file name.
 /// </remarks>
 public sealed record MediaItem
 {

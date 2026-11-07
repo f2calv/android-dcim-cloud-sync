@@ -47,9 +47,15 @@ internal sealed class ChangeTrackingMediaSource : IChangeTrackingMediaSource
     public IAsyncEnumerable<MediaItem> DiscoverChangedAsync(string sinceToken, CancellationToken cancellationToken) =>
         DiscoverSinceAsync(int.Parse(sinceToken, CultureInfo.InvariantCulture), cancellationToken);
 
+    /// <summary>
+    /// Gets the number of times an item was opened for reading.
+    /// </summary>
+    public int OpenCount { get; private set; }
+
     /// <inheritdoc/>
     public Task<Stream> OpenReadAsync(MediaItem item, CancellationToken cancellationToken)
     {
+        OpenCount++;
         var entry = _items.Single(candidate => candidate.Item.SourceId == item.SourceId);
         return entry.Unreadable
             ? throw new IOException("The item cannot be read.")

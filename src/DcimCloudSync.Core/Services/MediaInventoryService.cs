@@ -4,13 +4,19 @@ namespace DcimCloudSync.Services;
 /// Reads every item from the media source once and summarizes sizes, duplicates and unreadable items.
 /// </summary>
 /// <remarks>
-/// Exercises the discovery, streaming and SHA-256 hashing path that backup will build on, without uploading or
-/// persisting anything. Logs contain counts only, never item names or paths.
+/// Exercises the discovery, streaming and SHA-256 hashing path that backup builds on, without uploading anything. Logs
+/// contain counts only, never item names or paths; the optional on-device <see cref="IBackupLog"/> also records file names,
+/// so the user can compare what was found with what is on the device.
 /// </remarks>
+/// <param name="logger">The logger.</param>
+/// <param name="timeProvider">The clock for scan durations and log entries.</param>
+/// <param name="mediaSource">The media source.</param>
+/// <param name="backupLog">Records found and unreadable items for the user on the device, or <see langword="null"/>.</param>
 public sealed partial class MediaInventoryService(
     ILogger<MediaInventoryService> logger,
     TimeProvider timeProvider,
-    IMediaSource mediaSource)
+    IMediaSource mediaSource,
+    IBackupLog? backupLog = null)
 {
     /// <summary>
     /// Discovers, reads and hashes every item visible to the media source.
@@ -40,11 +46,13 @@ public sealed partial class MediaInventoryService(
                     duplicateCount++;
 
                 LogItemHashed(logger, nameof(MediaInventoryService), itemCount, length);
+                Record(BackupLogLevel.Information, "Found by scan.", item);
             }
             catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
             {
                 unreadableCount++;
                 LogItemUnreadable(logger, nameof(MediaInventoryService), itemCount, ex.GetType().Name);
+                Record(BackupLogLevel.Warning, $"Found by scan but could not be read ({ex.GetType().Name}).", item);
             }
 
             progress?.Report(new MediaInventoryProgress(itemCount, totalBytes));
@@ -64,8 +72,14 @@ public sealed partial class MediaInventoryService(
             summary.DuplicateCount,
             summary.UnreadableCount,
             summary.Elapsed);
+        Record(
+            BackupLogLevel.Information,
+            $"Scan finished: {summary.ItemCount} items, {summary.DuplicateCount} duplicates, {summary.UnreadableCount} unreadable.");
         return summary;
     }
+
+    private void Record(BackupLogLevel level, string message, MediaItem? item = null) =>
+        backupLog?.Add(new BackupLogEntry(timeProvider.GetUtcNow(), level, message, item?.DisplayName, item?.SizeBytes));
 
     [LoggerMessage(Level = LogLevel.Debug, Message = "{ClassName} hashed ItemNumber={ItemNumber} Length={Length}")]
     private static partial void LogItemHashed(ILogger logger, string className, int itemNumber, long length);

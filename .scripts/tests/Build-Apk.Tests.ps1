@@ -31,6 +31,11 @@ Describe 'Get-ApkDisplayVersion' {
         Mock Invoke-Git { }
         Get-ApkDisplayVersion -Root $TestDrive | Should -Be '0.0.0-local'
     }
+
+    It 'Labels CI builds' {
+        Mock Invoke-Git { if ($args -contains 'describe') { '1.2.3' } else { 'abc1234' } }
+        Get-ApkDisplayVersion -Root $TestDrive -Label 'ci' | Should -Be '1.2.3-ci.abc1234'
+    }
 }
 
 Describe 'Build-Apk' {
@@ -44,6 +49,32 @@ Describe 'Build-Apk' {
         $script:PublishArguments = $null
         $script:Commands = @()
         Mock Invoke-Aapt2 { "package: name='app' versionCode='42' versionName='x'" }
+        $script:SavedSigning = @{}
+        foreach ($name in 'ANDROID_SIGNING_KEYSTORE_BASE64', 'ANDROID_SIGNING_KEYSTORE_PASSWORD', 'ANDROID_SIGNING_KEY_VAULT', 'ANDROID_SIGNING_KEY_ALIAS') {
+            $script:SavedSigning[$name] = [Environment]::GetEnvironmentVariable($name)
+            Remove-Item -Path "Env:$name" -ErrorAction SilentlyContinue
+        }
+        $script:SigningDuringPublish = $null
+        $script:PublishingDotNet = {
+            $global:LASTEXITCODE = 0
+            if ($args[0] -ne 'publish') { return }
+            $script:SigningDuringPublish = @{
+                KeyStore = $env:AndroidKeyStore
+                Path     = $env:AndroidSigningKeyStore
+                Exists   = $env:AndroidSigningKeyStore -and (Test-Path -LiteralPath $env:AndroidSigningKeyStore)
+                Alias    = $env:AndroidSigningKeyAlias
+                Password = $env:AndroidSigningStorePass
+            }
+            New-Item -ItemType Directory -Path $script:PublishDirectory -Force | Out-Null
+            Set-Content -LiteralPath (Join-Path $script:PublishDirectory 'app-Signed.apk') -Value 'apk'
+        }
+    }
+
+    AfterEach {
+        foreach ($name in $script:SavedSigning.Keys) {
+            if ($script:SavedSigning[$name]) { Set-Item -Path "Env:$name" -Value $script:SavedSigning[$name] }
+            else { Remove-Item -Path "Env:$name" -ErrorAction SilentlyContinue }
+        }
     }
 
     It 'Publishes a Release APK with the version and copies it under a versioned name' {
@@ -106,6 +137,63 @@ Describe 'Build-Apk' {
         Should -Invoke Invoke-DotNet -Times 0
         Test-Path -LiteralPath $destination | Should -BeFalse
     }
+
+    It 'Signs with the debug key when no keystore is configured' {
+        Mock Invoke-DotNet $script:PublishingDotNet
+
+        $apk = Build-Apk -Root $root -Destination $destination -Code 42 -DisplayVersion '0.0.0-local'
+
+        $script:SigningDuringPublish.KeyStore | Should -BeNullOrEmpty
+        $apk.SignedWith | Should -Be "this machine's debug key"
+    }
+
+    It 'Signs with a keystore from the environment and removes it afterwards' {
+        $env:ANDROID_SIGNING_KEYSTORE_BASE64 = [Convert]::ToBase64String([byte[]](1, 2, 3))
+        $env:ANDROID_SIGNING_KEYSTORE_PASSWORD = 'test-password'
+        Mock Invoke-DotNet $script:PublishingDotNet
+
+        $apk = Build-Apk -Root $root -Destination $destination -Code 42 -DisplayVersion '0.0.0-local'
+
+        $script:SigningDuringPublish.KeyStore | Should -Be 'true'
+        $script:SigningDuringPublish.Exists | Should -BeTrue
+        $script:SigningDuringPublish.Alias | Should -Be 'dcim-sideload'
+        $script:SigningDuringPublish.Password | Should -Be 'test-password'
+        $apk.SignedWith | Should -Be 'sideload keystore (environment)'
+        Test-Path -LiteralPath $script:SigningDuringPublish.Path | Should -BeFalse
+        $env:AndroidKeyStore | Should -BeNullOrEmpty
+        $env:AndroidSigningStorePass | Should -BeNullOrEmpty
+    }
+
+    It 'Signs with a keystore from Key Vault' {
+        $env:ANDROID_SIGNING_KEY_VAULT = 'example-vault'
+        Mock Invoke-Az {
+            $global:LASTEXITCODE = 0
+            if ($args -contains 'dcim-android-sideload-keystore') { [Convert]::ToBase64String([byte[]](1, 2, 3)) } else { 'vault-password' }
+        }
+        Mock Invoke-DotNet $script:PublishingDotNet
+
+        $apk = Build-Apk -Root $root -Destination $destination -Code 42 -DisplayVersion '0.0.0-local'
+
+        $script:SigningDuringPublish.Password | Should -Be 'vault-password'
+        $apk.SignedWith | Should -Be 'sideload keystore (Key Vault)'
+        Should -Invoke Invoke-Az -Times 2 -ParameterFilter { $args -contains 'example-vault' }
+    }
+
+    It 'Explains a Key Vault failure' {
+        $env:ANDROID_SIGNING_KEY_VAULT = 'example-vault'
+        Mock Invoke-Az { $global:LASTEXITCODE = 1 }
+        Mock Invoke-DotNet $script:PublishingDotNet
+
+        { Build-Apk -Root $root -Destination $destination -Code 42 -DisplayVersion '0.0.0-local' } | Should -Throw '*az login*'
+        Should -Invoke Invoke-DotNet -Times 0
+    }
+
+    It 'Rejects a keystore without a password' {
+        $env:ANDROID_SIGNING_KEYSTORE_BASE64 = [Convert]::ToBase64String([byte[]](1, 2, 3))
+        Mock Invoke-DotNet $script:PublishingDotNet
+
+        { Build-Apk -Root $root -Destination $destination -Code 42 -DisplayVersion '0.0.0-local' } | Should -Throw '*without ANDROID_SIGNING_KEYSTORE_PASSWORD*'
+    }
 }
 
 Describe 'Install-Apk' {
@@ -124,6 +212,11 @@ Describe 'Install-Apk' {
     It 'Explains a signature mismatch' {
         Mock Invoke-Adb { $global:LASTEXITCODE = 1; 'Failure [INSTALL_FAILED_UPDATE_INCOMPATIBLE]' }
         { Install-Apk -Path 'app.apk' } | Should -Throw '*INSTALL_FAILED_UPDATE_INCOMPATIBLE*uninstalled first*'
+    }
+
+    It 'Reports a missing device without the signature hint' {
+        Mock Invoke-Adb { $global:LASTEXITCODE = 1; 'adb.exe: no devices/emulators found' }
+        { Install-Apk -Path 'app.apk' } | Should -Throw -ExpectedMessage 'adb install failed: adb.exe: no devices/emulators found.'
     }
 
     It 'Installs nothing with -WhatIf' {

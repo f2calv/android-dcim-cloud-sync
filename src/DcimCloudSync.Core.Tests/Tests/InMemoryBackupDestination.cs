@@ -7,8 +7,8 @@ namespace DcimCloudSync.Tests;
 /// </summary>
 internal sealed class InMemoryBackupDestination : IBackupDestination
 {
-    /// <summary>Gets the stored backups by source identity: the recorded hash and the uploaded bytes.</summary>
-    public Dictionary<string, (string? Sha256, byte[] Content)> Backups { get; } = new(StringComparer.Ordinal);
+    /// <summary>Gets the stored backups by source identity.</summary>
+    public Dictionary<string, StoredBackup> Backups { get; } = new(StringComparer.Ordinal);
 
     /// <summary>Gets or sets a backup that appears after the first lookup, simulating a concurrent writer.</summary>
     public (string SourceId, string Sha256)? ConcurrentWrite { get; set; }
@@ -25,7 +25,9 @@ internal sealed class InMemoryBackupDestination : IBackupDestination
         if (Failure is not null)
             throw Failure;
 
-        return Task.FromResult(Backups.TryGetValue(item.SourceId, out var backup) ? new BackupRecord(backup.Sha256) : null);
+        return Task.FromResult(Backups.TryGetValue(item.SourceId, out var backup)
+            ? new BackupRecord(backup.Sha256, backup.SourceSizeBytes, backup.SourceModifiedUtc)
+            : null);
     }
 
     /// <inheritdoc/>
@@ -35,13 +37,22 @@ internal sealed class InMemoryBackupDestination : IBackupDestination
             throw Failure;
 
         if (ConcurrentWrite is { } write && write.SourceId == item.SourceId)
-            Backups[write.SourceId] = (write.Sha256, []);
+            Backups[write.SourceId] = new StoredBackup(write.Sha256, []);
         if (Backups.ContainsKey(item.SourceId))
             return false;
 
         using var buffer = new MemoryStream();
         await content.CopyToAsync(buffer, cancellationToken);
-        Backups[item.SourceId] = (sha256, buffer.ToArray());
+        Backups[item.SourceId] = new StoredBackup(sha256, buffer.ToArray(), item.SizeBytes, item.ModifiedUtc);
         return true;
     }
+
+    /// <summary>
+    /// One stored backup.
+    /// </summary>
+    /// <param name="Sha256">The recorded hash, or <see langword="null"/> for none.</param>
+    /// <param name="Content">The uploaded bytes.</param>
+    /// <param name="SourceSizeBytes">The recorded source size, or <see langword="null"/> for none.</param>
+    /// <param name="SourceModifiedUtc">The recorded source modification time, or <see langword="null"/> for none.</param>
+    internal sealed record StoredBackup(string? Sha256, byte[] Content, long? SourceSizeBytes = null, DateTimeOffset? SourceModifiedUtc = null);
 }

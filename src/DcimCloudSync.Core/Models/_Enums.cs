@@ -35,3 +35,51 @@ public enum MediaAccessLevel
     /// <summary>All photos and videos are visible.</summary>
     Full,
 }
+
+/// <summary>
+/// Selects how a backup run decides that an item is already backed up.
+/// </summary>
+public enum BackupCheckMode
+{
+    /// <summary>
+    /// An existing backup whose recorded source size and modification time match the item counts as backed up without
+    /// reading the item; other items are hashed and compared.
+    /// </summary>
+    Quick,
+
+    /// <summary>Every item is read and its SHA-256 compared with the existing backup.</summary>
+    Full,
+}
+
+/// <summary>
+/// Names the step a backup run is performing on its current item.
+/// </summary>
+public enum BackupItemPhase
+{
+    /// <summary>Between items, or the run has finished.</summary>
+    None,
+
+    /// <summary>Looking up the item's existing backup.</summary>
+    Checking,
+
+    /// <summary>Reading the item to compute its SHA-256.</summary>
+    Hashing,
+
+    /// <summary>Uploading the item.</summary>
+    Uploading,
+}
+
+/// <summary>
+/// Classifies an entry in the backup log.
+/// </summary>
+public enum BackupLogLevel
+{
+    /// <summary>A routine event, such as an upload.</summary>
+    Information,
+
+    /// <summary>An item could not be backed up, but the run continued.</summary>
+    Warning,
+
+    /// <summary>The run stopped.</summary>
+    Error,
+}

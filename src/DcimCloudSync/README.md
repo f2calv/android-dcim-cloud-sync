@@ -18,15 +18,17 @@ permission, and the **Settings** switch for automatic backup schedules backgroun
 
 | Source contract | Responsibility |
 | --- | --- |
-| [`MauiProgram`](MauiProgram.cs) | Creates the MAUI host, registers the page and calls the platform's service registration; adds debug logging in Debug builds only |
+| [`MauiProgram`](MauiProgram.cs) | Creates the MAUI host, registers the status and log pages, the file-backed backup log and the `Backup` options, and calls the platform's service registration; adds debug logging in Debug builds only |
 | [`MauiProgram.Windows`](Platforms/Windows/MauiProgram.Windows.cs) | Windows-only registration of configuration, `TimeProvider`, the folder media source and the inventory service, plus the Azure backup destination and backup service when a connection string is configured |
-| [`App`](App.xaml.cs) | Resolves the page from dependency injection for each window |
-| [`AppShell`](AppShell.xaml.cs) | Tab bar hosting the injected status page at `main`, plus the settings page at `settings` where the platform registers one |
-| [`MainPage`](Pages/MainPage.xaml.cs) | Status text and, when the services are registered, the scan and backup controls sharing one cancellable runner |
+| [`App`](App.xaml.cs) | Resolves the pages from dependency injection for each window |
+| [`AppShell`](AppShell.xaml.cs) | Tab bar hosting the injected status page at `main`, the settings page at `settings` where the platform registers one, and the log page at `log` |
+| [`MainPage`](Pages/MainPage.xaml.cs) | Status text and, when the services are registered, the scan and backup controls sharing one cancellable runner, with the current file's name and a progress bar while it is read or uploaded |
+| [`LogPage`](Pages/LogPage.xaml.cs) | Lists the 25 most recent scan and backup events, newest first, with file names and sizes in KB, and clears them |
+| [`FileBackupLog`](Services/FileBackupLog.cs) | Keeps those events in an app-private JSON file with source-generated serialization; a damaged file is replaced, and a write failure never stops a backup |
 | [`WinUI.App`](Platforms/Windows/App.xaml.cs) | WinUI entry point that starts the MAUI app on Windows |
 | [`MauiProgram.Android`](Platforms/Android/MauiProgram.Android.cs) | Android-only registration of preference-backed configuration, options, `TimeProvider`, media access, the MediaStore source, the checkpoint store, inventory and backup services, the MSAL token provider, the Azure destination, the background scheduler, runner and notifier, and the settings page |
 | [`MainApplication`](Platforms/Android/MainApplication.cs) | Creates the MAUI host for every process start, including WorkManager's, and re-applies the background schedule to match the saved settings |
-| [`MediaStoreMediaSource`](Platforms/Android/Services/MediaStoreMediaSource.cs) | Queries the image and video collections of every external volume for DCIM rows, optionally only rows changed since a MediaStore generation, and opens original bytes with `SetRequireOriginal` and original-format acceptance |
+| [`MediaStoreMediaSource`](Platforms/Android/Services/MediaStoreMediaSource.cs) | Queries the image and video collections of every external volume for rows in `DCIM/Camera`, or in every DCIM folder when configured, optionally only rows changed since a MediaStore generation, and opens original bytes with `SetRequireOriginal` and original-format acceptance |
 | [`AndroidMediaAccess`](Platforms/Android/Services/AndroidMediaAccess.cs) | Requests the media permissions together, or checks them without prompting, and classifies the grant as full, partial or denied, with or without location |
 | [`MsalAccessTokenProvider`](Platforms/Android/Services/MsalAccessTokenProvider.cs) | Acquires storage tokens silently, or interactively in the system browser without the broker, never in the background; signs out by removing cached accounts |
 | [`MsalActivity`](Platforms/Android/MsalActivity.cs) | Receives the `io.github.f2calv.androiddcimcloudsync://auth` sign-in redirect |
@@ -34,7 +36,7 @@ permission, and the **Settings** switch for automatic backup schedules backgroun
 | [`BackupWorker`](Platforms/Android/Services/BackupWorker.cs) | WorkManager worker with a fixed Java name; runs one background backup and re-arms the new-media trigger |
 | [`BackgroundBackupRunner`](Platforms/Android/Services/BackgroundBackupRunner.cs) | Runs an incremental backup with sign-in prompts suppressed and decides between completing, retrying and notifying |
 | [`BackupNotifier`](Platforms/Android/Services/BackupNotifier.cs) | Posts the high-importance run summary and requests to act, with counts and sizes only |
-| [`SettingsPage`](Pages/SettingsPage.xaml.cs) | Edits and validates the backup settings, including automatic backup, and signs out |
+| [`SettingsPage`](Pages/SettingsPage.xaml.cs) | Edits and validates the backup settings, including automatic backup, the DCIM folder scope and the quick or full check, and signs out |
 | [`PreferencesBackupSettingsStore`](Services/PreferencesBackupSettingsStore.cs) | Saves the settings to MAUI `Preferences`, reloads configuration so options update without a restart, clears the checkpoint when the destination changes and re-applies the background schedule |
 | [`PreferencesBackupCheckpointStore`](Services/PreferencesBackupCheckpointStore.cs) | Keeps the incremental backup checkpoint in MAUI `Preferences` |
 | [`PreferencesConfigurationProvider`](Services/PreferencesConfigurationProvider.cs) | Exposes the saved settings as configuration keys |
@@ -61,7 +63,10 @@ library manifest adds `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED` and `FOREGROUND_SERV
 access is requested only when an operation starts or settings are saved, through MAUI's permissions API
 on the UI thread; background runs only check it.
 
-Discovery reads only rows whose MediaStore relative path starts with `DCIM/`; MediaStore already
+Discovery reads only rows whose MediaStore relative path starts with `DCIM/Camera/`, the camera folder and
+its subfolders such as bursts, or, when `MediaStoreMediaSource:AllFoldersIncluded` is set from
+**Settings**, with `DCIM/`. Other DCIM folders are off by default because they usually belong to other
+apps. Changing the setting clears the incremental checkpoint. MediaStore already
 excludes pending and trashed rows. Each item's relative path is relative to DCIM, prefixed with the volume
 name on removable storage, so blob names match the Windows folder source. Without
 `ACCESS_MEDIA_LOCATION` the source falls back to MediaStore's location-redacted bytes.
@@ -99,8 +104,8 @@ The app has no queue or per-item state and no deletion behavior.
 ## Configuration and Dependencies
 
 On Android, the **Settings** tab saves the directory (tenant) ID, application (client) ID, blob service URL,
-container, prefixes and access tier to MAUI `Preferences`, bound as the `Entra` and `AzureBlobBackup`
-configuration sections. None is a secret; never package them. MSAL keeps sign-in tokens in its own
+container, prefixes, access tier and DCIM folder choice to MAUI `Preferences`, bound as the `Entra`,
+`AzureBlobBackup` and `MediaStoreMediaSource` configuration sections. None is a secret; never package them. MSAL keeps sign-in tokens in its own
 app-private cache. Do not supply connection strings or keys to the Android app.
 
 On Windows, environment variables prefixed `DcimCloudSync__` are added to configuration.

@@ -80,12 +80,7 @@ public sealed partial class MainPage : ContentPage
         await RunAsync<BackupProgress, BackupSummary>(
             "Backing up…",
             backupSvc.BackUpAsync,
-            report => string.Format(
-                CultureInfo.CurrentCulture,
-                "Backing up: {0:N0} items checked, {1:N0} uploaded ({2:N1} MiB).",
-                report.ItemCount,
-                report.UploadedCount,
-                report.UploadedBytes / BytesPerMebibyte),
+            DescribeBackupProgress,
             summary => string.Format(
                 CultureInfo.CurrentCulture,
                 "Checked {0:N0} items in {1:N1} s. Uploaded: {2:N0} ({3:N1} MiB). Already backed up: {4:N0}. "
@@ -99,6 +94,37 @@ public sealed partial class MainPage : ContentPage
                 summary.UnverifiedCount,
                 summary.ChangedCount,
                 summary.UnreadableCount));
+    }
+
+    private string DescribeBackupProgress(BackupProgress report)
+    {
+        var fraction = report.Phase is BackupItemPhase.Hashing or BackupItemPhase.Uploading && report.CurrentItemLength > 0
+            ? Math.Clamp((double)report.CurrentItemBytes / report.CurrentItemLength, 0, 1)
+            : (double?)null;
+        ItemProgressBar.IsVisible = fraction is not null;
+        if (fraction is { } value)
+            ItemProgressBar.Progress = value;
+
+        var totals = string.Format(
+            CultureInfo.CurrentCulture,
+            "{0:N0} uploaded so far ({1:N1} MiB).",
+            report.UploadedCount,
+            report.UploadedBytes / BytesPerMebibyte);
+        return report.Phase switch
+        {
+            BackupItemPhase.Checking => string.Format(
+                CultureInfo.CurrentCulture, "Item {0:N0}: checking {1}. {2}", report.ItemCount, report.CurrentItemName, totals),
+            BackupItemPhase.Hashing or BackupItemPhase.Uploading => string.Format(
+                CultureInfo.CurrentCulture,
+                "Item {0:N0}: {1} {2}, {3:N1} of {4:N1} MiB. {5}",
+                report.ItemCount,
+                report.Phase == BackupItemPhase.Hashing ? "reading" : "uploading",
+                report.CurrentItemName,
+                report.CurrentItemBytes / BytesPerMebibyte,
+                report.CurrentItemLength / BytesPerMebibyte,
+                totals),
+            _ => string.Format(CultureInfo.CurrentCulture, "Backing up: {0:N0} items checked. {1}", report.ItemCount, totals),
+        };
     }
 
     private async void OnCancelClicked(object? sender, EventArgs e)
@@ -177,6 +203,8 @@ public sealed partial class MainPage : ContentPage
         CancelButton.IsEnabled = isBusy;
         ActivityIndicator.IsRunning = isBusy;
         ActivityIndicator.IsVisible = isBusy;
+        if (!isBusy)
+            ItemProgressBar.IsVisible = false;
     }
 
     private void ShowResult(string text)

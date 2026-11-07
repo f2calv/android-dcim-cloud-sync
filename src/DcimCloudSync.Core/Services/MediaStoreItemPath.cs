@@ -22,6 +22,9 @@ public static class MediaStoreItemPath
     /// <summary>The MediaStore relative-path prefix of the DCIM folder.</summary>
     public const string DcimPrefix = "DCIM/";
 
+    /// <summary>The MediaStore relative-path prefix of the camera folder inside DCIM.</summary>
+    public const string CameraPrefix = DcimPrefix + "Camera/";
+
     private const char SourceIdSeparator = ':';
 
     /// <summary>

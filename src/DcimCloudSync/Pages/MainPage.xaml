@@ -58,6 +58,10 @@
                     IsRunning="False"
                     IsVisible="False"
                     SemanticProperties.Description="Operation in progress" />
+                <ProgressBar
+                    x:Name="ItemProgressBar"
+                    IsVisible="False"
+                    SemanticProperties.Description="Progress of the current file" />
                 <Label x:Name="StatusLabel" />
             </VerticalStackLayout>
             <Label

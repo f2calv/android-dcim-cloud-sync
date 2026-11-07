@@ -37,8 +37,8 @@ public sealed class BackupServiceTests
         var destination = new InMemoryBackupDestination();
         using var service = CreateService(folder, destination);
         _ = await service.BackUpAsync(null, TestContext.Current.CancellationToken);
-        destination.Backups["changed.jpg"] = ("0000", []);
-        destination.Backups["unverified.jpg"] = (null, []);
+        destination.Backups["changed.jpg"] = new("0000", []);
+        destination.Backups["unverified.jpg"] = new(null, []);
 
         var summary = await service.BackUpAsync(null, TestContext.Current.CancellationToken);
 
@@ -176,6 +176,91 @@ public sealed class BackupServiceTests
         InMemoryCheckpointStore checkpoint,
         InMemoryBackupDestination? destination = null) =>
         new(NullLogger<BackupService>.Instance, TimeProvider.System, source, destination ?? new InMemoryBackupDestination(), checkpoint);
+
+    [Theory]
+    [InlineData(BackupCheckMode.Quick, 2)]
+    [InlineData(BackupCheckMode.Full, 3)]
+    public async Task BackUpAsync_CheckMode(BackupCheckMode mode, int expectedOpens)
+    {
+        var source = new ChangeTrackingMediaSource();
+        source.Add("IMG_0001.jpg", "photo");
+        var config = new StaticOptionsMonitor<BackupConfig>(new BackupConfig { CheckMode = mode });
+        using var service = new BackupService(
+            NullLogger<BackupService>.Instance, TimeProvider.System, source, new InMemoryBackupDestination(), config: config);
+        _ = await service.BackUpAsync(null, TestContext.Current.CancellationToken);
+
+        var summary = await service.BackUpAsync(null, TestContext.Current.CancellationToken);
+
+        Assert.Equal((1, expectedOpens), (summary.AlreadyBackedUpCount, source.OpenCount));
+    }
+
+    [Fact]
+    public async Task BackUpAsync_QuickCheckHashesWithoutRecordedSource()
+    {
+        var source = new ChangeTrackingMediaSource();
+        source.Add("IMG_0001.jpg", "photo");
+        var destination = new InMemoryBackupDestination();
+        destination.Backups["IMG_0001.jpg"] = new(PhotoSha256, []);
+        using var service = new BackupService(NullLogger<BackupService>.Instance, TimeProvider.System, source, destination);
+
+        var summary = await service.BackUpAsync(null, TestContext.Current.CancellationToken);
+
+        Assert.Equal((1, 1), (summary.AlreadyBackedUpCount, source.OpenCount));
+    }
+
+    [Fact]
+    public async Task BackUpAsync_ReportsItemPhases()
+    {
+        var source = new ChangeTrackingMediaSource();
+        source.Add("IMG_0001.jpg", "photo");
+        var reports = new List<BackupProgress>();
+        using var service = new BackupService(
+            NullLogger<BackupService>.Instance, TimeProvider.System, source, new InMemoryBackupDestination());
+
+        _ = await service.BackUpAsync(new SynchronousProgress<BackupProgress>(reports.Add), TestContext.Current.CancellationToken);
+
+        Assert.Equal(
+            [BackupItemPhase.Checking, BackupItemPhase.Hashing, BackupItemPhase.Uploading],
+            reports.Select(report => report.Phase).Where(phase => phase != BackupItemPhase.None).Distinct());
+        Assert.Contains(reports, report => report is { Phase: BackupItemPhase.Uploading, CurrentItemBytes: 5, CurrentItemName: "IMG_0001.jpg" });
+    }
+
+    [Fact]
+    public async Task BackUpAsync_RecordsLog()
+    {
+        var source = new ChangeTrackingMediaSource();
+        source.Add("IMG_0001.jpg", "photo");
+        var log = new InMemoryBackupLog();
+        using var service = new BackupService(
+            NullLogger<BackupService>.Instance, TimeProvider.System, source, new InMemoryBackupDestination(), backupLog: log);
+
+        _ = await service.BackUpAsync(null, TestContext.Current.CancellationToken);
+
+        var entries = log.GetEntries();
+        Assert.Equal(3, entries.Count);
+        Assert.StartsWith("Backup finished: 1 checked, 1 uploaded", entries[0].Message, StringComparison.Ordinal);
+        Assert.Equal(("Uploaded.", "IMG_0001.jpg", 5L), (entries[1].Message, entries[1].FileName, entries[1].SizeBytes));
+        Assert.StartsWith("Backup started", entries[2].Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task BackUpAsync_RecordsLogOnDestinationFailure()
+    {
+        var source = new ChangeTrackingMediaSource();
+        source.Add("IMG_0001.jpg", "photo");
+        var log = new InMemoryBackupLog();
+        var destination = new InMemoryBackupDestination
+        {
+            Failure = new Exceptions.BackupDestinationException("Destination unavailable.", new InvalidOperationException()),
+        };
+        using var service = new BackupService(
+            NullLogger<BackupService>.Instance, TimeProvider.System, source, destination, backupLog: log);
+
+        _ = await Assert.ThrowsAsync<Exceptions.BackupDestinationException>(
+            () => service.BackUpAsync(null, TestContext.Current.CancellationToken));
+
+        Assert.Equal((BackupLogLevel.Error, "Backup stopped: Destination unavailable."), (log.GetEntries()[0].Level, log.GetEntries()[0].Message));
+    }
 
     private static BackupService CreateService(TemporaryMediaFolder folder, InMemoryBackupDestination destination) =>
         new(NullLogger<BackupService>.Instance, TimeProvider.System, folder.Source, destination);

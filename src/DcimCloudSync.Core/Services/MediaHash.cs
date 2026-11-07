@@ -16,13 +16,16 @@ internal static class MediaHash
     /// <param name="mediaSource">The source that opens the item.</param>
     /// <param name="item">The item to hash.</param>
     /// <param name="cancellationToken">Cancels opening and reading.</param>
+    /// <param name="onRead">Receives the bytes read so far, at most once per mebibyte and at the end, or <see langword="null"/>.</param>
     /// <returns>The lowercase hexadecimal SHA-256 and the number of bytes read.</returns>
     public static async Task<(string Sha256, long Length)> ComputeAsync(
         IMediaSource mediaSource,
         MediaItem item,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        Action<long>? onRead = null)
     {
-        var stream = await mediaSource.OpenReadAsync(item, cancellationToken).ConfigureAwait(false);
+        var source = await mediaSource.OpenReadAsync(item, cancellationToken).ConfigureAwait(false);
+        var stream = onRead is null ? source : new ProgressReportingStream(source, onRead);
         await using (stream.ConfigureAwait(false))
         {
             using var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
