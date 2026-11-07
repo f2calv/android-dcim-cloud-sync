@@ -26,5 +26,8 @@ Reports should include:
 - Never commit Azure Storage keys, connection strings, SAS tokens, signing credentials, or keystores.
 - Never include long-lived storage credentials in an APK or Android App Bundle.
 - Use least-privilege, short-lived access where possible.
-- Store secrets on the device only through platform-backed secure storage.
+- Store secrets on the device only through platform-backed secure storage. The one exception is the
+  Microsoft sign-in library's token cache, which it keeps in app-private storage and does not let apps
+  relocate; [ADR 0001](docs/adr-0001-device-credentials.md) records that residual risk. If a device is
+  lost, revoke the account's sign-in sessions.
 - Revoke exposed credentials immediately, even if the commit containing them is later removed.

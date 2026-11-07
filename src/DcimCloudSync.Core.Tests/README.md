@@ -15,14 +15,16 @@ dotnet test --project .\src\DcimCloudSync.Core.Tests\DcimCloudSync.Core.Tests.cs
 | --- | --- | --- | --- |
 | [`FileSystemMediaSourceTests`](Tests/Unit/FileSystemMediaSourceTests.cs) | `Discovery` | 4 | 5 |
 | [`MediaInventoryServiceTests`](Tests/Unit/MediaInventoryServiceTests.cs) | `Hashing` | 3 | 3 |
-| [`BackupServiceTests`](Tests/Unit/BackupServiceTests.cs) | `Backup` | 6 | 7 |
-| **Total** | | **13** | **15** |
+| [`BackupServiceTests`](Tests/Unit/BackupServiceTests.cs) | `Backup` | 10 | 11 |
+| [`MediaStoreItemPathTests`](Tests/Unit/MediaStoreItemPathTests.cs) | `Discovery` | 3 | 20 |
+| **Total** | | **20** | **39** |
 
-The trait categories are `Discovery`, for finding and opening folder media; `Hashing`, for scan
+The trait categories are `Discovery`, for finding and opening folder media and mapping MediaStore rows; `Hashing`, for scan
 summaries, duplicates, unreadable files and cancellation; and `Backup`, for uploads, existing
 matching, conflicting and unverified backups, a concurrent writer, an item changed after hashing,
-unreadable files and destination failures. The `Backup` tests use the in-memory
-`InMemoryBackupDestination`, and `ChangingMediaSource` serves different content on its second open. The `*_UnreadableItem`
+unreadable files, destination failures, serialized runs and incremental runs from a checkpoint. The `Backup` tests use the in-memory
+`InMemoryBackupDestination` and `InMemoryCheckpointStore`. `ChangingMediaSource` serves different content on its second open,
+`GatedMediaSource` holds discovery open to observe overlapping runs, and `ChangeTrackingMediaSource` versions its items. The `*_UnreadableItem`
 tests make a file unreadable by holding it open with `FileShare.None`.
 
 ## Skipped Tests
@@ -37,10 +39,14 @@ graph TD
     Tests --> Destination[InMemoryBackupDestination.cs]
     Tests --> Progress[SynchronousProgress.cs]
     Tests --> Changing[ChangingMediaSource.cs]
+    Tests --> Gated[GatedMediaSource.cs]
+    Tests --> Tracking[ChangeTrackingMediaSource.cs]
+    Tests --> Checkpoint[InMemoryCheckpointStore.cs]
     Tests --> Unit[Unit/]
     Unit --> Source[FileSystemMediaSourceTests.cs]
     Unit --> Inventory[MediaInventoryServiceTests.cs]
     Unit --> Backup[BackupServiceTests.cs]
+    Unit --> MediaStore[MediaStoreItemPathTests.cs]
 ```
 
 ## Dependencies

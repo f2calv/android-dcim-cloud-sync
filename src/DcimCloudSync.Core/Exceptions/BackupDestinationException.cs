@@ -4,7 +4,7 @@ namespace DcimCloudSync.Exceptions;
 /// Reports that a backup destination failed for a reason other than an existing backup.
 /// </summary>
 /// <remarks>Messages name the operation and status only, never item names, paths, endpoints or credentials.</remarks>
-public sealed class BackupDestinationException : Exception
+public class BackupDestinationException : Exception
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="BackupDestinationException"/> class.

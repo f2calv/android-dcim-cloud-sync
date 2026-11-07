@@ -11,7 +11,11 @@
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.14" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.14" />
     <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Identity.Client" Version="4.92.0" />
     <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.120" />
+    <!-- Pinned to the release whose AndroidX Core and Lifecycle dependencies match those Microsoft.Maui.Controls brings in;
+         newer releases fail restore with NU1608. Bump it together with Microsoft.Maui.Controls. -->
+    <PackageVersion Include="Xamarin.AndroidX.Work.Runtime" Version="2.10.3" />
     <PackageVersion Include="xunit.v3" Version="4.0.2" />
   </ItemGroup>
 </Project>

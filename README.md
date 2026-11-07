@@ -9,7 +9,14 @@ today.
 
 The app opens one scrollable **Status** page.
 
-- **Android 13 or later:** the page is static. The app reads no media and has no backup controls.
+- **Android 13 or later:** the page adds **Scan media**. On first use Android asks for photo and video
+  access; the scan then reads the DCIM photos and videos the user allows, with their original bytes and
+  location, and reports the same totals as on Windows. Selecting only some photos limits the scan to
+  those, and the result says so. **Back up** appears once the **Settings** tab holds the storage and
+  sign-in details; the first backup opens a Microsoft sign-in in the browser, after which tokens refresh
+  silently. Backups follow the same create-only rules as on Windows. While **automatic backup** is on in
+  **Settings**, new DCIM photos and videos are also backed up in the background on Wi-Fi, and a short
+  notification summarises each run that backs something up.
 - **Windows (development only):** the page adds a **Media** section that reads a local folder standing
   in for the phone's DCIM collection.
   - **Scan media** computes a SHA-256 hash of each photo and video and reports the item count, bytes
@@ -20,8 +27,7 @@ The app opens one scrollable **Status** page.
     (conflict) or is absent (unverified). A file edited during its upload is abandoned before commit
     and retried by the next run.
 
-Background scheduling, retries, Android media access, device credentials and deletion are not
-implemented.
+Deletion is not implemented, and background backup exists only on Android.
 
 | Project | Purpose |
 | --- | --- |
@@ -36,12 +42,15 @@ implemented.
 ```mermaid
 flowchart LR
     Developer["Developer"] --> App["Android DCIM Cloud Sync"]
+    Phone["Android DCIM media"] -->|Android discovery and reads, with permission| App
     Folder["Synthetic development media folder"] -->|Windows-only discovery and reads| App
-    App -->|Windows-only create-only uploads and hash metadata| Storage["Azurite or configured Azure Blob Storage"]
+    App -->|Create-only uploads and hash metadata| Storage["Azurite or configured Azure Blob Storage"]
+    App -->|Android sign-in| Entra["Microsoft Entra ID"]
 ```
 
-The Android page remains static. The Windows development target is the only runtime that reads
-media or uploads backups. See the [architecture, dependencies and validation flow](docs/architecture.md).
+Android reads DCIM media and uploads backups after a Microsoft sign-in, as decided in
+[ADR 0001](docs/adr-0001-device-credentials.md); the Windows development target uploads with a configured
+connection string. See the [architecture, dependencies and validation flow](docs/architecture.md).
 
 ## Local Development
 
@@ -112,8 +121,73 @@ Debug services on Windows first; switch to Android only for a deliberate device 
 
 ### Debug on Android
 
-Select a compatible Android emulator or a paired device in Visual Studio and deploy interactively.
-An Android emulator avoids enabling developer options on a managed phone.
+Select a compatible Android emulator or a paired device in Visual Studio and deploy interactively, or
+from the command line with
+`dotnet build .\src\DcimCloudSync\DcimCloudSync.csproj -t:Run -f net10.0-android`.
+An Android emulator avoids enabling developer options on a managed phone. On an emulator, add
+synthetic photos to DCIM by dragging files onto the emulator window or with
+`adb push <file> /sdcard/DCIM/Camera/`, then rescan them with
+`adb shell content call --method scan_volume --uri content://media --arg external_primary`. To see the
+permission prompt again, for example to test **Allow limited access** or **Don't allow**, reset the
+app's permissions with `adb shell pm reset-permissions -p io.github.f2calv.androiddcimcloudsync`.
+
+### Build an APK for a Phone
+
+Debug deployments keep the app's code on the development machine, so they cannot be copied to a
+phone. To sideload onto a phone without enabling debugging, build a Release APK:
+
+```powershell
+./build-apk.ps1                                 # writes artifacts/apk/android-dcim-cloud-sync-<version>-<code>.apk
+./build-apk.ps1 -Install -Device emulator-5554  # also installs it over an earlier build on an emulator
+```
+
+On Linux or macOS, run `./build-apk.sh` with the same arguments. The
+[script](.scripts/Build-Apk.ps1):
+
+- cleans and publishes a trimmed Release build signed with this machine's Android debug key;
+- sets a version code that grows each minute, and checks that the APK carries it;
+- prints the APK's path and SHA-256.
+
+Each build uses the same debug key and a higher version code, so it installs over the previous one
+and keeps the sign-in and settings. A build from another machine has a different debug key and
+must be uninstalled first, which deletes the app's data. The APK is for your own devices only:
+it is not release-signed. It contains no settings or credentials.
+
+Copy the APK to the phone, for example through a synced cloud folder or a USB file transfer, and open
+it with **Files**, allowing that app to install unknown apps. Test a Release build on the emulator
+before sideloading, because trimming can remove code that only runs on a device. The
+[Pester tests](.scripts/tests/Build-Apk.Tests.ps1) cover the script without building:
+
+```powershell
+Invoke-Pester ./.scripts/tests
+```
+
+### Back Up from Android
+
+Android uploads authenticate as a signed-in Microsoft account, never with a stored key; see
+[ADR 0001](docs/adr-0001-device-credentials.md). The Azure side needs, once:
+
+1. A single-tenant **public client** app registration in the directory that owns the storage account,
+   with the redirect URI `io.github.f2calv.androiddcimcloudsync://auth` and the delegated Azure Storage
+   `user_impersonation` permission. It needs no secret.
+2. A container, and a role assignment on it for the signing-in account granting blob `read`,
+   `add/action` and `write` but not `delete`, such as a custom role.
+
+Then open the app's **Settings** tab and enter the directory (tenant) ID, application (client) ID, blob
+service URL (`https://<account>.blob.core.windows.net/`), container, prefixes and optional access tier,
+and select **Save**. **Back up** appears on the **Status** tab. The first backup opens the sign-in page
+in the browser; **Sign out** in **Settings** removes the account from the device. Test against a
+dedicated container before pointing the app at real backups.
+
+**Back up new photos and videos automatically on Wi-Fi** in **Settings** is on by default. Android's
+WorkManager then starts a background run shortly after new DCIM media appears, plus a catch-up run every
+six hours, each only on an unmetered network with the battery not low. A background run never opens the
+sign-in page: when the sign-in has expired, media access was withdrawn or a failure persists after
+retries, a notification asks you to open the app instead. Background runs read only the photos and
+videos added or changed since the last complete run, using MediaStore's change generation; **Back up**
+in the app always checks every item. Allow notifications when Android asks to see each run's summary.
+WorkManager stops a run after about ten minutes and the next run resumes, so back up a long video from
+the app if a background run cannot finish it.
 
 ### Tests
 
@@ -136,22 +210,37 @@ There are no UI automation tests; the page is validated interactively.
 
 ## Privacy and Platform Limits
 
-The Android app reads no media, stores no credentials or backup state, and sends no product data
-off the device. Its [Android manifest](src/DcimCloudSync/Platforms/Android/AndroidManifest.xml)
-declares only:
+On Android the app reads DCIM photos and videos when the user starts a scan or backup, and, while
+automatic backup is on, when a background run starts. It sends media only to the storage container
+named in **Settings**, signed in as the user. Besides settings in app preferences and sign-in tokens in
+the Microsoft sign-in library's app-private cache, it stores only a MediaStore change checkpoint
+(volume versions and generations, nothing about individual items). Notifications show counts and sizes,
+never file names. No other product data leaves the device. Its
+[Android manifest](src/DcimCloudSync/Platforms/Android/AndroidManifest.xml) declares:
 
 | Permission | Scope in this checkout |
 | --- | --- |
-| `android.permission.INTERNET` | Allows network access; the static page makes no network requests |
-| `android.permission.ACCESS_NETWORK_STATE` | Allows connectivity inspection; the static page does not inspect it |
+| `android.permission.READ_MEDIA_IMAGES` | Reads photos for scans and backups |
+| `android.permission.READ_MEDIA_VIDEO` | Reads videos for scans and backups |
+| `android.permission.READ_MEDIA_VISUAL_USER_SELECTED` | Android 14 and later: lets the user allow only selected photos and videos |
+| `android.permission.ACCESS_MEDIA_LOCATION` | Reads photos with their location metadata intact, so backups keep it; it shows no prompt of its own |
+| `android.permission.INTERNET` | Signs in to Microsoft Entra ID and uploads backups to Azure Blob Storage |
+| `android.permission.ACCESS_NETWORK_STATE` | Lets WorkManager wait for an unmetered network |
+| `android.permission.POST_NOTIFICATIONS` | Shows the background backup summary and requests to act |
 
-No media, broad storage, notification or background-service permissions are declared. Android
-application-data backup is disabled and cleartext traffic is disallowed. No background worker
-survives closing the app.
+WorkManager's library manifest adds `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED` and `FOREGROUND_SERVICE`, so
+schedules survive a reboot; the app runs no foreground service of its own.
+
+The app requests media access only when **Scan media** or **Back up** is selected, and notification
+permission when **Back up** is selected or automatic backup is saved. Background runs never prompt. When
+media access is denied, the app opens its settings instead of asking repeatedly. Location stays inside
+the photo bytes the app reads; it is never extracted, shown or logged. No broad storage permission is
+declared. Android application-data backup is disabled and cleartext traffic is disallowed.
 
 The Windows target reads files only from the configured folder and sends them only to the configured
 backup destination. Its connection string comes from an environment variable and is never stored by
-the app. Uploads are create-only: nothing is overwritten or deleted, locally or remotely. The Windows
+the app. On both targets uploads are create-only: nothing is overwritten or deleted, locally or
+remotely, and the Android sign-in's role cannot delete blobs. The Windows
 target is not distributed. iOS and macOS are not targeted.
 
 See the [security policy](SECURITY.md) for vulnerability reporting.

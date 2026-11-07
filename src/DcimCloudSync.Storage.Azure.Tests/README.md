@@ -8,10 +8,13 @@ Microsoft.Testing.Platform.
 | Class | Category | Methods | Test cases | Needs |
 | --- | --- | --- | --- | --- |
 | [`BlobNameTests`](Tests/Unit/BlobNameTests.cs) | `Naming` | 1 | 4 | Nothing |
+| [`TokenConfigurationTests`](Tests/Unit/TokenConfigurationTests.cs) | `Configuration` | 4 | 10 | Nothing |
 | [`AzureBlobBackupDestinationTests`](Tests/Integration/AzureBlobBackupDestinationTests.cs) | `Integration` | 5 | 5 | Azurite or a configured account |
-| **Total** | | **6** | **9** | |
+| **Total** | | **10** | **19** | |
 
 - `Naming` checks photo and video prefixes, trimmed and empty prefixes.
+- `Configuration` checks that exactly one of a connection string or an https blob service URL is set,
+  `IsConfigured` for each, and that the token credential adapter passes scopes and tokens through.
 - `Integration` checks create-only uploads, recorded hashes, content types and access tiers, the error for
   a missing container, an item changed after hashing leaving no blob behind, and a backup run over a
   temporary folder: first upload, rerun, then a changed file reported as a conflict. The changing
@@ -49,6 +52,8 @@ graph TD
     Tests --> Unit[Unit/]
     Tests --> Integration[Integration/]
     Unit --> Naming[BlobNameTests.cs]
+    Unit --> Token[TokenConfigurationTests.cs]
+    Tests --> Monitor[StaticOptionsMonitor.cs]
     Integration --> Base[TestBase.cs]
     Integration --> Destination[AzureBlobBackupDestinationTests.cs]
     Tests -.-> Changing[ChangingMediaSource.cs, linked]

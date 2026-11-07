@@ -21,7 +21,7 @@
                 Text="Current status"
                 SemanticProperties.HeadingLevel="Level2" />
             <Label
-                Text="Backup is a development preview. Nothing runs in the background, and no files are deleted."
+                Text="Backup is a development preview. On Android, new photos and videos are backed up in the background on Wi-Fi while automatic backup is on in Settings. No files are deleted."
                 SemanticProperties.Description="Current status. Backup is a development preview." />
             <VerticalStackLayout
                 x:Name="MediaSection"
@@ -33,13 +33,13 @@
                     Text="Media"
                     SemanticProperties.HeadingLevel="Level2" />
                 <Label
-                    Text="Scan reads and hashes every photo and video in the development media folder. Back up copies each one to the configured destination once and never overwrites an existing backup." />
+                    Text="Scan reads and hashes every DCIM photo and video, or on Windows the development media folder. Back up copies each one to the configured destination once and never overwrites an existing backup." />
                 <HorizontalStackLayout Spacing="12">
                     <Button
                         x:Name="ScanButton"
                         Text="Scan media"
                         Clicked="OnScanClicked"
-                        SemanticProperties.Hint="Reads and hashes every photo and video in the development media folder" />
+                        SemanticProperties.Hint="Reads and hashes every DCIM photo and video" />
                     <Button
                         x:Name="BackUpButton"
                         Text="Back up"

@@ -71,7 +71,7 @@ public abstract class TestBase : IAsyncLifetime
     /// <param name="accessTier">The access tier for new backups, or <see langword="null"/> for the account default.</param>
     /// <returns>The destination.</returns>
     protected AzureBlobBackupDestination CreateDestination(bool containerCreationEnabled = true, string? accessTier = null) =>
-        new(Options.Create(new AzureBlobBackupConfig
+        new(new StaticOptionsMonitor<AzureBlobBackupConfig>(new AzureBlobBackupConfig
         {
             AccessTier = accessTier,
             ConnectionString = ConnectionString,

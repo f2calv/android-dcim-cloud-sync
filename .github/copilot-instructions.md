@@ -16,9 +16,13 @@ below is specific to this repository.
 This is a .NET 10 MAUI app with one Shell page. Android is the product platform; a Windows target
 exists only for debugging services on a workstation. `DcimCloudSync.Core` holds the platform-neutral
 media and backup contracts, a folder-backed media source, an inventory scan and a create-only backup
-service. `DcimCloudSync.Storage.Azure` implements the backup destination with Azure Blob Storage and is
-referenced only by the Windows target. Android media access, device credentials, background work and
-persistence do not exist yet.
+service. `DcimCloudSync.Storage.Azure` implements the backup destination with Azure Blob Storage: a
+connection string on Windows, or on Android an MSAL access token for a no-delete role, as decided in
+`docs/adr-0001-device-credentials.md`. On Android, WorkManager runs incremental background backups from
+a MediaStore change checkpoint; there is no per-item queue or local backup state.
+
+- Keep MSAL inside `Platforms/Android`; core and the Azure provider see only `IAccessTokenProvider`.
+  Never enable the authentication broker, and never package tenant, client, account or container values.
 
 - Build from `android-dcim-cloud-sync.slnx`, named after the repository; central SDK, build and package policy lives in the root files.
 - Keep `net10.0-android`, minimum API 33 and application ID
@@ -31,8 +35,16 @@ persistence do not exist yet.
 - Backups are create-only: never overwrite or delete a blob, and report hash conflicts instead.
 - Integration tests use Azurite from the root `docker-compose.yml` and per-test containers.
 - Keep `android:allowBackup="false"`.
-- The manifest declares only Internet and network-state permissions. Add no media or background
-  permission before the requiring behavior and privacy documentation exist.
+- The manifest declares the visual-media permissions, `ACCESS_MEDIA_LOCATION`, Internet, network
+  state and `POST_NOTIFICATIONS`; WorkManager's library adds its own. Add no other permission, and never
+  `MANAGE_EXTERNAL_STORAGE`, before the requiring behavior and privacy documentation exist.
+- Background runs must never prompt: wrap them in `InteractiveSignIn.Suppress()` and surface
+  `SignInRequiredException` as a notification. Notifications carry counts and sizes only.
+- Bump `Xamarin.AndroidX.Work.Runtime` only together with `Microsoft.Maui.Controls`; a newer WorkManager
+  pulls AndroidX Lifecycle versions outside MAUI's ranges and restore fails with NU1608.
+- Release builds are trimmed and the app uses the configuration binding source generator. Give bound
+  options properties public setters: generated binding silently skips init-only properties. Validate
+  Android changes in a Release APK from `build-apk.ps1` as well as in a debug deployment.
 - Keep device deployment, signing and Play publishing deferred; CI builds unsigned artifacts only.
 - Preserve the tracked Visual Studio scaffold rather than replacing the application project.
 

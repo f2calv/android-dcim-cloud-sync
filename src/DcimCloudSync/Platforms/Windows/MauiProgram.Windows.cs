@@ -1,5 +1,3 @@
-using DcimCloudSync.Abstractions;
-using DcimCloudSync.Models;
 using DcimCloudSync.Services;
 using Microsoft.Extensions.Configuration;
 
@@ -16,6 +14,7 @@ public static partial class MauiProgram
             .Bind(builder.Configuration.GetSection(FileSystemMediaSourceConfig.ConfigurationSectionName))
             .ValidateDataAnnotations();
         builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddSingleton<IMediaAccess, UnrestrictedMediaAccess>();
         builder.Services.AddSingleton<IMediaSource, FileSystemMediaSource>();
         builder.Services.AddSingleton<MediaInventoryService>();
         AddBackup(builder);

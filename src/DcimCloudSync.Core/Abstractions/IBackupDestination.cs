@@ -10,6 +10,12 @@ namespace DcimCloudSync.Abstractions;
 public interface IBackupDestination
 {
     /// <summary>
+    /// Gets a value indicating whether the destination has the settings and credentials it needs to run.
+    /// </summary>
+    /// <remarks>Reading it performs no network I/O and never throws for missing or invalid settings.</remarks>
+    public bool IsConfigured { get; }
+
+    /// <summary>
     /// Finds the existing backup of an item.
     /// </summary>
     /// <param name="item">The item to look up.</param>

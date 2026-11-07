@@ -6,16 +6,40 @@ namespace DcimCloudSync.Services;
 /// <remarks>
 /// Uploads are create-only and record the content SHA-256 as blob metadata. Constructing the destination reads no
 /// configuration and performs no network I/O; the client is created on first use, and a missing container is created
-/// then only when configured. A failed creation is retried on the next operation.
+/// then only when configured. A failed creation is retried on the next operation. Settings are read on every operation, so a
+/// changed endpoint or container takes effect without a restart. A blob service URL authenticates with the signed-in user's
+/// token from <see cref="IAccessTokenProvider"/>.
 /// </remarks>
 /// <param name="config">The destination configuration.</param>
-public sealed class AzureBlobBackupDestination(IOptions<AzureBlobBackupConfig> config) : IBackupDestination
+/// <param name="tokenProvider">The signed-in user's token provider, or <see langword="null"/> when only connection strings are used.</param>
+public sealed class AzureBlobBackupDestination(
+    IOptionsMonitor<AzureBlobBackupConfig> config,
+    IAccessTokenProvider? tokenProvider = null)
+    : IBackupDestination
 {
     /// <summary>The blob metadata key that records the content SHA-256.</summary>
     public const string Sha256MetadataKey = "sha256";
 
     private readonly SemaphoreSlim _initializationLock = new(1, 1);
-    private ContainerStorage? _storage;
+    private (string Key, ContainerStorage Storage)? _storage;
+
+    /// <inheritdoc/>
+    public bool IsConfigured
+    {
+        get
+        {
+            try
+            {
+                var current = config.CurrentValue;
+                return !string.IsNullOrWhiteSpace(current.ConnectionString)
+                    || (current.BlobServiceUri is not null && tokenProvider is { IsConfigured: true });
+            }
+            catch (OptionsValidationException)
+            {
+                return false;
+            }
+        }
+    }
 
     /// <inheritdoc/>
     public async Task<BackupRecord?> FindBackupAsync(MediaItem item, CancellationToken cancellationToken)
@@ -49,7 +73,7 @@ public sealed class AzureBlobBackupDestination(IOptions<AzureBlobBackupConfig> c
             var storage = await GetStorageAsync(cancellationToken).ConfigureAwait(false);
             var args = new AzBlobUploadArgs
             {
-                AccessTier = config.Value.AccessTier is { } tier ? (AccessTier?)new AccessTier(tier) : null,
+                AccessTier = config.CurrentValue.AccessTier is { } tier ? (AccessTier?)new AccessTier(tier) : null,
                 ContentType = item.MimeType,
                 Metadata = new Dictionary<string, string> { [Sha256MetadataKey] = sha256 },
             };
@@ -69,30 +93,32 @@ public sealed class AzureBlobBackupDestination(IOptions<AzureBlobBackupConfig> c
     public string GetBlobName(MediaItem item)
     {
         ArgumentNullException.ThrowIfNull(item);
+        var current = config.CurrentValue;
         var prefix = item.MimeType.StartsWith("video/", StringComparison.OrdinalIgnoreCase)
-            ? config.Value.VideoPrefix
-            : config.Value.PhotoPrefix;
+            ? current.VideoPrefix
+            : current.PhotoPrefix;
         prefix = prefix.Trim('/');
         return prefix.Length == 0 ? item.RelativePath : $"{prefix}/{item.RelativePath}";
     }
 
     private async Task<ContainerStorage> GetStorageAsync(CancellationToken cancellationToken)
     {
-        if (_storage is { } ready)
-            return ready;
+        var current = config.CurrentValue;
+        var key = $"{current.ConnectionString}|{current.BlobServiceUri}|{current.ContainerName}";
+        if (_storage is { } cached && cached.Key == key)
+            return cached.Storage;
 
         await _initializationLock.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            if (_storage is null)
-            {
-                var storage = new ContainerStorage(new BlobContainerClient(config.Value.ConnectionString, config.Value.ContainerName));
-                if (config.Value.ContainerCreationEnabled)
-                    await storage.CreateContainerIfNotExists(cancellationToken).ConfigureAwait(false);
-                _storage = storage;
-            }
+            if (_storage is { } raced && raced.Key == key)
+                return raced.Storage;
 
-            return _storage;
+            var storage = new ContainerStorage(CreateContainerClient(current));
+            if (current.ContainerCreationEnabled)
+                await storage.CreateContainerIfNotExists(cancellationToken).ConfigureAwait(false);
+            _storage = (key, storage);
+            return storage;
         }
         finally
         {
@@ -100,5 +126,15 @@ public sealed class AzureBlobBackupDestination(IOptions<AzureBlobBackupConfig> c
         }
     }
 
+    private BlobContainerClient CreateContainerClient(AzureBlobBackupConfig current)
+    {
+        if (!string.IsNullOrWhiteSpace(current.ConnectionString))
+            return new BlobContainerClient(current.ConnectionString, current.ContainerName);
+
+        if (current.BlobServiceUri is not { } serviceUri || tokenProvider is null)
+            throw new InvalidOperationException("The backup destination has no connection string, or no blob service URL and sign-in.");
+
+        return new BlobContainerClient(new Uri(serviceUri, current.ContainerName), new AccessTokenProviderCredential(tokenProvider));
+    }
     private sealed class ContainerStorage(BlobContainerClient containerClient) : AzBlobStorageBase(containerClient);
 }
