@@ -144,7 +144,11 @@ Progress on 2026-11-07, against a dedicated test container on the emulator:
   - the working tree and the emulator log contained none of the test tenant, account, storage account
     or container identifiers, and no bearer tokens;
   - the package carries no identifiers, because they are entered on the device.
-- **V4 outstanding:** it needs a temporary role-assignment removal through the infrastructure code.
+- **V4 observed:**
+  - after a targeted Terraform destroy removed the role assignment, **Back up** stopped with "Azure
+    Blob Storage rejected a backup lookup with status 403";
+  - no blob was created, since the lookup fails before any upload;
+  - re-applying restored the assignment, and a follow-up plan showed no changes.
 
 Delivery is one branch: the credential adapter and destination constructor, the settings page,
 Android registration of the backup service, then validation V1-V5 on the emulator. Background backup
