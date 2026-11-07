@@ -69,8 +69,32 @@ jobs:
       test-compose-file: docker-compose.yml
       test-compose-services: ${{ matrix.storage && '["azurite"]' || '[]' }}
 
+  #Pester tests for the repository scripts; they mock dotnet, git and adb, so no SDK or device is needed.
+  script-tests:
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Install-Module Pester -RequiredVersion 5.7.1
+        shell: pwsh
+        run: Install-Module Pester -Scope CurrentUser -RequiredVersion 5.7.1 -Force
+      - name: Invoke-Pester .scripts/tests
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version 3.0
+          Import-Module Pester -RequiredVersion 5.7.1
+          $configuration = New-PesterConfiguration
+          $configuration.Run.Path = './.scripts/tests'
+          $configuration.Run.PassThru = $true
+          $configuration.Output.Verbosity = 'Detailed'
+          $result = Invoke-Pester -Configuration $configuration
+          if ($result.TotalCount -eq 0 -or $result.FailedCount -gt 0) { exit 1 }
+
   release:
-    needs: [lint, versioning, build, build-windows, tests]
+    needs: [lint, versioning, build, build-windows, tests, script-tests]
     if: needs.versioning.outputs.release-exists == 'false'
       && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     uses: f2calv/gha-workflows/.github/workflows/gha-release-versioning.yml@v1

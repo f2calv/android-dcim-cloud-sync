@@ -131,6 +131,37 @@ synthetic photos to DCIM by dragging files onto the emulator window or with
 permission prompt again, for example to test **Allow limited access** or **Don't allow**, reset the
 app's permissions with `adb shell pm reset-permissions -p io.github.f2calv.androiddcimcloudsync`.
 
+### Build an APK for a Phone
+
+Debug deployments keep the app's code on the development machine, so they cannot be copied to a
+phone. To sideload onto a phone without enabling debugging, build a Release APK:
+
+```powershell
+./build-apk.ps1                                 # writes artifacts/apk/android-dcim-cloud-sync-<version>-<code>.apk
+./build-apk.ps1 -Install -Device emulator-5554  # also installs it over an earlier build on an emulator
+```
+
+On Linux or macOS, run `./build-apk.sh` with the same arguments. The
+[script](.scripts/Build-Apk.ps1):
+
+- cleans and publishes a trimmed Release build signed with this machine's Android debug key;
+- sets a version code that grows each minute, and checks that the APK carries it;
+- prints the APK's path and SHA-256.
+
+Each build uses the same debug key and a higher version code, so it installs over the previous one
+and keeps the sign-in and settings. A build from another machine has a different debug key and
+must be uninstalled first, which deletes the app's data. The APK is for your own devices only:
+it is not release-signed. It contains no settings or credentials.
+
+Copy the APK to the phone, for example through a synced cloud folder or a USB file transfer, and open
+it with **Files**, allowing that app to install unknown apps. Test a Release build on the emulator
+before sideloading, because trimming can remove code that only runs on a device. The
+[Pester tests](.scripts/tests/Build-Apk.Tests.ps1) cover the script without building:
+
+```powershell
+Invoke-Pester ./.scripts/tests
+```
+
 ### Back Up from Android
 
 Android uploads authenticate as a signed-in Microsoft account, never with a stored key; see
