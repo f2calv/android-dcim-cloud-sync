@@ -16,9 +16,12 @@ below is specific to this repository.
 This is a .NET 10 MAUI app with one Shell page. Android is the product platform; a Windows target
 exists only for debugging services on a workstation. `DcimCloudSync.Core` holds the platform-neutral
 media and backup contracts, a folder-backed media source, an inventory scan and a create-only backup
-service. `DcimCloudSync.Storage.Azure` implements the backup destination with Azure Blob Storage and is
-referenced only by the Windows target. Android discovers DCIM media through MediaStore for scans;
-Android backup, device credentials, background work and persistence do not exist yet.
+service. `DcimCloudSync.Storage.Azure` implements the backup destination with Azure Blob Storage: a
+connection string on Windows, or on Android an MSAL access token for a no-delete role, as decided in
+`docs/adr-0001-device-credentials.md`. Background work and local backup state do not exist yet.
+
+- Keep MSAL inside `Platforms/Android`; core and the Azure provider see only `IAccessTokenProvider`.
+  Never enable the authentication broker, and never package tenant, client, account or container values.
 
 - Build from `android-dcim-cloud-sync.slnx`, named after the repository; central SDK, build and package policy lives in the root files.
 - Keep `net10.0-android`, minimum API 33 and application ID

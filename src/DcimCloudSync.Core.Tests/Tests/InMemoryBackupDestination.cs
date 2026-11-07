@@ -17,6 +17,9 @@ internal sealed class InMemoryBackupDestination : IBackupDestination
     public Exception? Failure { get; set; }
 
     /// <inheritdoc/>
+    public bool IsConfigured => true;
+
+    /// <inheritdoc/>
     public Task<BackupRecord?> FindBackupAsync(MediaItem item, CancellationToken cancellationToken)
     {
         if (Failure is not null)

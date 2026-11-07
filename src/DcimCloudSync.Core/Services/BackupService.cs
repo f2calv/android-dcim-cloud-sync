@@ -15,6 +15,11 @@ public sealed partial class BackupService(
     IBackupDestination backupDestination)
 {
     /// <summary>
+    /// Gets a value indicating whether the backup destination is configured, so a run can start.
+    /// </summary>
+    public bool IsAvailable => backupDestination.IsConfigured;
+
+    /// <summary>
     /// Backs up every item visible to the media source.
     /// </summary>
     /// <param name="progress">Receives a report after each item, or <see langword="null"/>.</param>

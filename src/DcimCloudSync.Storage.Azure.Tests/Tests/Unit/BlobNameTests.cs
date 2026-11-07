@@ -13,7 +13,7 @@ public sealed class BlobNameTests
     [InlineData("image/jpeg", "", "videos", "Camera/a.jpg")]
     public void GetBlobName(string mimeType, string photoPrefix, string videoPrefix, string expected)
     {
-        var destination = new AzureBlobBackupDestination(Options.Create(new AzureBlobBackupConfig
+        var destination = new AzureBlobBackupDestination(new StaticOptionsMonitor<AzureBlobBackupConfig>(new AzureBlobBackupConfig
         {
             ConnectionString = "UseDevelopmentStorage=true",
             PhotoPrefix = photoPrefix,

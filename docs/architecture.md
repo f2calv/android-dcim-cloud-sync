@@ -1,7 +1,7 @@
 # Architecture
 
-Android is the product platform and scans DCIM media through MediaStore, but cannot back up yet.
-Windows provides a development-only media scan and backup client.
+Android is the product platform: it scans DCIM media through MediaStore and backs it up after a Microsoft
+sign-in. Windows provides a development-only media scan and backup client.
 The [System Context](../README.md#system-context) describes that boundary.
 
 ## Containers
@@ -9,24 +9,27 @@ The [System Context](../README.md#system-context) describes that boundary.
 ```mermaid
 flowchart LR
     subgraph Application["Android DCIM Cloud Sync"]
-        Android["Android MAUI client: DCIM scan"]
+        Android["Android MAUI client: DCIM scan and backup"]
         Windows["Windows MAUI development client"]
     end
     MediaStore["Android MediaStore: DCIM rows"] -->|Original bytes, with permission| Android
     Folder["Development media folder"] -->|Read-only file streams| Windows
     Windows -->|Create-only blobs and SHA-256 metadata| Storage["Azurite or configured Azure Blob Storage"]
+    Android -->|Sign-in and silent token refresh| Entra["Microsoft Entra ID"]
+    Android -->|Create-only blobs with a bearer token| Storage
 ```
 
-The clients run separately. Android has a media source but no backup destination; how it will
-authorize uploads is proposed in [ADR 0001](adr-0001-device-credentials.md).
-Windows activates backup controls only when a destination connection string is configured.
+The clients run separately. Android authorizes uploads with an Entra access token and a no-delete role,
+as decided in [ADR 0001](adr-0001-device-credentials.md), and shows backup controls once its settings
+are saved. Windows activates backup controls only when a destination connection string is configured.
 
 ## Dependency Graph
 
 ```mermaid
 graph LR
     App["DcimCloudSync"] --> Core["DcimCloudSync.Core"]
-    App -->|Windows only| Azure["DcimCloudSync.Storage.Azure"]
+    App --> Azure["DcimCloudSync.Storage.Azure"]
+    App -->|Android only| Msal["Microsoft.Identity.Client"]
     Azure --> Core
     Azure -->|Release package; Debug sibling source| Library["CasCap.Api.Azure.Storage 2.0.0"]
     CoreTests["DcimCloudSync.Core.Tests"] --> Core

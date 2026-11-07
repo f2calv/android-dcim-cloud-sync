@@ -1,4 +1,5 @@
 global using Azure.Storage.Blobs;
+global using DcimCloudSync.Abstractions;
 global using DcimCloudSync.Exceptions;
 global using DcimCloudSync.Models;
 global using DcimCloudSync.Services;

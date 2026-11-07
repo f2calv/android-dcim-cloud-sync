@@ -38,7 +38,13 @@ public sealed partial class MainPage : ContentPage
         _mediaInventorySvc = mediaInventorySvc;
         _backupSvc = backupSvc;
         MediaSection.IsVisible = mediaInventorySvc is not null;
-        BackUpButton.IsVisible = backupSvc is not null;
+    }
+
+    /// <inheritdoc/>
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        BackUpButton.IsVisible = _backupSvc?.IsAvailable == true;
     }
 
     private async void OnScanClicked(object? sender, EventArgs e)

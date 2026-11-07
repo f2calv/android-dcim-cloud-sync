@@ -11,6 +11,7 @@
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.14" />
     <PackageVersion Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.14" />
     <PackageVersion Include="Microsoft.Extensions.Options.DataAnnotations" Version="10.0.14" />
+    <PackageVersion Include="Microsoft.Identity.Client" Version="4.92.0" />
     <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.120" />
     <PackageVersion Include="xunit.v3" Version="4.0.2" />
   </ItemGroup>

@@ -1,7 +1,7 @@
 ﻿namespace DcimCloudSync;
 
 /// <summary>
-/// Provides the single-page application navigation shell.
+/// Provides the application navigation shell: the status page, plus a settings tab where the platform registers one.
 /// </summary>
 public sealed partial class AppShell : Shell
 {
@@ -9,16 +9,16 @@ public sealed partial class AppShell : Shell
     /// Initializes a new instance of the <see cref="AppShell"/> class.
     /// </summary>
     /// <param name="page">The constructor-injected status page.</param>
-    public AppShell(MainPage page)
+    /// <param name="settingsPage">The settings page, or <see langword="null"/> on platforms configured another way.</param>
+    public AppShell(MainPage page, SettingsPage? settingsPage = null)
     {
         ArgumentNullException.ThrowIfNull(page);
 
         InitializeComponent();
-        Items.Add(new ShellContent
-        {
-            Content = page,
-            Route = "main",
-            Title = "Status",
-        });
+        var tabs = new TabBar();
+        tabs.Items.Add(new ShellContent { Content = page, Route = "main", Title = "Status" });
+        if (settingsPage is not null)
+            tabs.Items.Add(new ShellContent { Content = settingsPage, Route = "settings", Title = "Settings" });
+        Items.Add(tabs);
     }
 }
