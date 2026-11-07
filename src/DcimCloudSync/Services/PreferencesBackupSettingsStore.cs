@@ -29,7 +29,7 @@ public sealed class PreferencesBackupSettingsStore(
     private const string PhotoPrefixKey = AzureBlobBackupConfig.ConfigurationSectionName + ":" + nameof(AzureBlobBackupConfig.PhotoPrefix);
     private const string VideoPrefixKey = AzureBlobBackupConfig.ConfigurationSectionName + ":" + nameof(AzureBlobBackupConfig.VideoPrefix);
     private const string AccessTierKey = AzureBlobBackupConfig.ConfigurationSectionName + ":" + nameof(AzureBlobBackupConfig.AccessTier);
-    private const string SubfoldersIncludedKey = MediaStoreMediaSourceConfig.ConfigurationSectionName + ":" + nameof(MediaStoreMediaSourceConfig.SubfoldersIncluded);
+    private const string AllFoldersIncludedKey = MediaStoreMediaSourceConfig.ConfigurationSectionName + ":" + nameof(MediaStoreMediaSourceConfig.AllFoldersIncluded);
 
     /// <summary>The configuration keys this store owns.</summary>
     public static readonly IReadOnlyList<string> Keys =
@@ -41,7 +41,7 @@ public sealed class PreferencesBackupSettingsStore(
         PhotoPrefixKey,
         VideoPrefixKey,
         AccessTierKey,
-        SubfoldersIncludedKey,
+        AllFoldersIncludedKey,
     ];
 
     /// <inheritdoc/>
@@ -57,7 +57,7 @@ public sealed class PreferencesBackupSettingsStore(
             preferences.Get(VideoPrefixKey, defaults.VideoPrefix),
             preferences.Get(AccessTierKey, string.Empty),
             preferences.Get(AutomaticBackupKey, true),
-            bool.TryParse(preferences.Get(SubfoldersIncludedKey, string.Empty), out var subfoldersIncluded) && subfoldersIncluded);
+            bool.TryParse(preferences.Get(AllFoldersIncludedKey, string.Empty), out var allFoldersIncluded) && allFoldersIncluded);
     }
 
     /// <inheritdoc/>
@@ -86,7 +86,7 @@ public sealed class PreferencesBackupSettingsStore(
             || previous.ContainerName != trimmed.ContainerName
             || previous.PhotoPrefix != trimmed.PhotoPrefix
             || previous.VideoPrefix != trimmed.VideoPrefix
-            || previous.SubfoldersIncluded != trimmed.SubfoldersIncluded)
+            || previous.AllFoldersIncluded != trimmed.AllFoldersIncluded)
             checkpointStore.Clear();
 
         preferences.Set(TenantIdKey, trimmed.TenantId);
@@ -98,7 +98,7 @@ public sealed class PreferencesBackupSettingsStore(
         preferences.Set(AccessTierKey, trimmed.AccessTier);
         preferences.Set(AutomaticBackupKey, trimmed.AutomaticBackup);
         // Stored as text because the configuration provider exposes every key as a string.
-        preferences.Set(SubfoldersIncludedKey, trimmed.SubfoldersIncluded ? bool.TrueString : bool.FalseString);
+        preferences.Set(AllFoldersIncludedKey, trimmed.AllFoldersIncluded ? bool.TrueString : bool.FalseString);
         configuration.Reload();
         scheduler.Apply(trimmed.AutomaticBackup);
         return [];

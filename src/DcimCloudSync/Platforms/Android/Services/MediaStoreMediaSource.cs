@@ -13,8 +13,8 @@ namespace DcimCloudSync.Services;
 /// Discovers DCIM photos and videos through Android MediaStore and opens their original bytes.
 /// </summary>
 /// <remarks>
-/// Queries the image and video collections of every external volume for rows directly in DCIM, or, when
-/// <see cref="MediaStoreMediaSourceConfig.SubfoldersIncluded"/> is set, in DCIM and its subfolders;
+/// Queries the image and video collections of every external volume for rows in the camera folder <c>DCIM/Camera</c> and
+/// its subfolders, or, when <see cref="MediaStoreMediaSourceConfig.AllFoldersIncluded"/> is set, in every folder under DCIM;
 /// pending and trashed rows are excluded by MediaStore. When the app holds <c>ACCESS_MEDIA_LOCATION</c>, content opens
 /// through <see cref="MediaStore.SetRequireOriginal(global::Android.Net.Uri)"/> and accepts the original format, so photo
 /// location is kept and HEVC video is not transcoded; otherwise MediaStore returns location-redacted bytes. Only the rows
@@ -23,7 +23,7 @@ namespace DcimCloudSync.Services;
 /// lists rows whose <c>generation_modified</c> is newer. A volume whose version changed, because its index was rebuilt, or
 /// that the token does not name is listed in full.
 /// </remarks>
-/// <param name="config">Selects whether DCIM subfolders are read.</param>
+/// <param name="config">Selects whether every DCIM folder is read, or only the camera folder.</param>
 public sealed class MediaStoreMediaSource(IOptionsMonitor<MediaStoreMediaSourceConfig> config) : IChangeTrackingMediaSource
 {
     private const string AnyMimeType = "*/*";
@@ -124,8 +124,10 @@ public sealed class MediaStoreMediaSource(IOptionsMonitor<MediaStoreMediaSourceC
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var context = Platform.AppContext;
-        // LIKE without a wildcard matches DCIM itself case-insensitively; with one it also matches every subfolder.
-        var pathPattern = config.CurrentValue.SubfoldersIncluded ? $"{MediaStoreItemPath.DcimPrefix}%" : MediaStoreItemPath.DcimPrefix;
+        // MediaStore relative paths end with a slash, so the camera pattern matches DCIM/Camera/ and its subfolders only.
+        var pathPattern = config.CurrentValue.AllFoldersIncluded
+            ? $"{MediaStoreItemPath.DcimPrefix}%"
+            : $"{MediaStoreItemPath.CameraPrefix}%";
         foreach (var volumeName in MediaStore.GetExternalVolumeNames(context))
         {
             long? sinceGeneration = generations.TryGetValue(volumeName, out var generation) ? generation : null;

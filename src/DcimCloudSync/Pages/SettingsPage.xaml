@@ -67,13 +67,13 @@
 
             <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
                 <Label
-                    Text="Also back up DCIM subfolders, such as DCIM/Camera or folders that other apps create"
+                    Text="Also back up other DCIM folders, such as ones that other apps create (only DCIM/Camera otherwise)"
                     VerticalOptions="Center" />
                 <Switch
-                    x:Name="SubfoldersIncludedSwitch"
+                    x:Name="AllFoldersIncludedSwitch"
                     Grid.Column="1"
                     VerticalOptions="Center"
-                    SemanticProperties.Description="Also back up DCIM subfolders" />
+                    SemanticProperties.Description="Also back up other DCIM folders" />
             </Grid>
 
             <HorizontalStackLayout Spacing="12">

@@ -10,10 +10,11 @@ today.
 The app opens one scrollable **Status** page.
 
 - **Android 13 or later:** the page adds **Scan media**. On first use Android asks for photo and video
-  access; the scan then reads the photos and videos directly in DCIM that the user allows, with their
-  original bytes and location, and reports the same totals as on Windows. DCIM subfolders, such as
-  folders other apps create or `DCIM/Camera`, are skipped unless **Also back up DCIM subfolders** is on
-  in **Settings**. Selecting only some photos limits the scan to those, and the result says so. **Back up** appears once the **Settings** tab holds the storage and
+  access; the scan then reads the photos and videos in the camera folder, `DCIM/Camera`, that the user
+  allows, with their original bytes and location, and reports the same totals as on Windows. Other DCIM
+  folders, such as those other apps create, are skipped unless **Also back up other DCIM folders** is
+  on in **Settings**. Selecting only some photos limits the scan to those, and the result says so.
+  **Back up** appears once the **Settings** tab holds the storage and
   sign-in details; the first backup opens a Microsoft sign-in in the browser, after which tokens refresh
   silently. Backups follow the same create-only rules as on Windows. While **automatic backup** is on in
   **Settings**, new DCIM photos and videos are also backed up in the background on Wi-Fi, and a short

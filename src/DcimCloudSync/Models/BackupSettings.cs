@@ -11,7 +11,7 @@ namespace DcimCloudSync.Models;
 /// <param name="VideoPrefix">The blob name prefix for videos.</param>
 /// <param name="AccessTier">The access tier for new backups, or an empty string for the account default.</param>
 /// <param name="AutomaticBackup">Whether new photos and videos are backed up in the background on unmetered networks.</param>
-/// <param name="SubfoldersIncluded">Whether photos and videos in DCIM subfolders are backed up as well as those directly in DCIM.</param>
+/// <param name="AllFoldersIncluded">Whether every folder under DCIM is backed up, rather than only the camera folder <c>DCIM/Camera</c>.</param>
 public sealed record BackupSettings(
     string TenantId,
     string ClientId,
@@ -21,4 +21,4 @@ public sealed record BackupSettings(
     string VideoPrefix,
     string AccessTier,
     bool AutomaticBackup,
-    bool SubfoldersIncluded);
+    bool AllFoldersIncluded);
