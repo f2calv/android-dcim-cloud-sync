@@ -2,6 +2,9 @@
 
 **Status:** Accepted.
 **Date:** 2026-11-07.
+**Delivery:** Complete. Validation V1-V5 passed on the emulator, and sign-in and upload were confirmed on a
+physical phone on 2026-11-07. Follow-up work outside this decision is listed under
+[Follow-up](#follow-up-outside-this-decision).
 **Scope:** How the Android client authorizes create-only uploads to Azure Blob Storage, and where its
 non-secret destination settings come from. The Windows development target and its connection-string
 configuration are out of scope.
@@ -167,32 +170,36 @@ The first Release build exposed a trimming defect: options bound as empty, which
 now uses the configuration binding source generator, and its options properties have public setters,
 because generated binding cannot assign init-only properties.
 
-### Remaining Steps to a Phone Trial
+### Physical Phone Validation
 
-1. Build the APK with `build-apk.ps1` on the machine whose debug key will sign every later update, and
-   install it on the emulator first.
-2. Before sideloading onto a phone enrolled in device management, check whether the policy blocks or
-   flags installing apps from unknown sources:
-   - a work-profile-only enrollment usually allows installing on the personal side;
-   - a fully managed device may treat sideloading like developer options.
-3. Copy the APK to the phone and install it. Enter the directory and application IDs, the blob service
-   URL and a dedicated test container in **Settings**.
-4. Grant **Allow limited access** to a few photos first. Run the first backup from the app on Wi-Fi
-   while charging; background runs scan incrementally only after a complete run has recorded a
-   checkpoint.
-5. Watch a few background runs. WorkManager stops a run after about ten minutes, so back up a long
-   video from the app if a background run cannot finish it.
-6. Then widen access to all photos, and point **Settings** at the production container once the trial
-   container matches the device's media.
+On 2026-11-07 a Release APK from `build-apk.ps1` was sideloaded onto a physical phone through a synced
+cloud folder, without enabling developer options or debugging:
 
-Suggested follow-up work:
+- [x] The APK installed and ran with no on-device configuration other than **Settings**.
+- [x] The owner's account signed in through the system browser as a B2B guest of the directory.
+- [x] With **Container** left at its default, `media`, **Back up** stopped with a 403. The role is scoped
+  to the test container, so this confirms the no-delete role grants nothing elsewhere.
+- [x] With the test container set, a manual backup uploaded every item the scan found: 13 photos
+  (26 MiB) and 4 videos (249 MiB), each with `sha256` metadata.
+- [x] The phone's DCIM held other apps' folders, so discovery now defaults to `DCIM/Camera`, with a
+  setting for every DCIM folder.
 
-- Add a gitignored local `build-apk.psd1` for machine-specific defaults, such as the device serial or
-  a folder that syncs to the phone, if repeated builds need them.
-- Publish a release-signed APK or bundle from CI once a signing key is held as a secret; the current
-  CI builds an unsigned bundle only.
-- Run long uploads as a foreground `dataSync` service if large videos regularly miss the background
-  window, which the `TODO` on `BackupWorker` tracks.
+### Follow-up Outside This Decision
+
+These items concern media discovery, scheduling and distribution, not device credentials:
+
+- [ ] Find out why the scan lists 17 of the 25 files in `DCIM/Camera`. The **Log** tab lists every item
+  a scan finds, to compare with the folder.
+- [ ] Confirm background runs and their notifications on the phone, including a video longer than
+  WorkManager's ten-minute window.
+- [ ] Confirm that the quick check skips unchanged items on a rerun once uploads record source size
+  and modification time.
+- [ ] Point **Settings** at the production container once the trial container matches the phone.
+- [ ] Publish a release-signed APK or bundle from CI once a signing key is held as a secret; CI builds
+  an unsigned bundle only.
+- [ ] Run long uploads as a foreground `dataSync` service if large videos regularly miss the
+  background window; the `TODO` on `BackupWorker` tracks this.
+- [ ] Add a gitignored local `build-apk.psd1` for machine-specific defaults if repeated builds need them.
 
 ## Open Questions and Reconsideration
 
