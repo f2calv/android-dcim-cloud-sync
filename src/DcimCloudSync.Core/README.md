@@ -9,6 +9,9 @@ Android or Azure dependency, so it can be developed and tested on any workstatio
 | --- | --- |
 | [`IMediaSource`](Abstractions/IMediaSource.cs) | Discovers photos and videos and opens each as a caller-owned read-only stream |
 | [`MediaItem`](Models/MediaItem.cs) | Source identity, relative path, display name, MIME type, size and modification time of one item |
+| [`IMediaAccess`](Abstractions/IMediaAccess.cs), [`MediaAccessStatus`](Models/MediaAccessStatus.cs) | Requests media permission and reports full, partial or denied access and whether location is kept |
+| [`UnrestrictedMediaAccess`](Services/UnrestrictedMediaAccess.cs) | Reports full access for sources without a permission model |
+| [`MediaStoreItemPath`](Services/MediaStoreItemPath.cs) | Maps Android MediaStore rows to DCIM-relative paths and source identities, without Android types |
 | [`FileSystemMediaSource`](Services/FileSystemMediaSource.cs) | `IMediaSource` over a local folder, standing in for Android MediaStore during development |
 | [`MediaInventoryService`](Services/MediaInventoryService.cs) | Streams and SHA-256 hashes every discovered item, reporting progress and a summary |
 | [`MediaInventoryProgress`](Models/MediaInventoryProgress.cs) | Items processed and bytes read so far |

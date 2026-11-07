@@ -1,8 +1,8 @@
 using DcimCloudSync.Exceptions;
-using DcimCloudSync.Models;
 using DcimCloudSync.Services;
 using Microsoft.Extensions.Options;
 using Microsoft.Maui.Accessibility;
+using Microsoft.Maui.ApplicationModel;
 using System.Globalization;
 
 namespace DcimCloudSync.Pages;
@@ -14,6 +14,7 @@ public sealed partial class MainPage : ContentPage
 {
     private const double BytesPerMebibyte = 1024 * 1024;
 
+    private readonly IMediaAccess? _mediaAccess;
     private readonly MediaInventoryService? _mediaInventorySvc;
     private readonly BackupService? _backupSvc;
     private CancellationTokenSource? _operationCancellation;
@@ -21,15 +22,19 @@ public sealed partial class MainPage : ContentPage
     /// <summary>
     /// Initializes a new instance of the <see cref="MainPage"/> class.
     /// </summary>
+    /// <param name="mediaAccess">
+    /// The media permission service, or <see langword="null"/> on platforms that do not register a media source yet.
+    /// </param>
     /// <param name="mediaInventorySvc">
     /// The media inventory service, or <see langword="null"/> on platforms that do not register a media source yet.
     /// </param>
     /// <param name="backupSvc">
     /// The backup service, or <see langword="null"/> when no backup destination is configured.
     /// </param>
-    public MainPage(MediaInventoryService? mediaInventorySvc = null, BackupService? backupSvc = null)
+    public MainPage(IMediaAccess? mediaAccess = null, MediaInventoryService? mediaInventorySvc = null, BackupService? backupSvc = null)
     {
         InitializeComponent();
+        _mediaAccess = mediaAccess;
         _mediaInventorySvc = mediaInventorySvc;
         _backupSvc = backupSvc;
         MediaSection.IsVisible = mediaInventorySvc is not null;
@@ -103,6 +108,22 @@ public sealed partial class MainPage : ContentPage
         if (_operationCancellation is not null)
             return;
 
+        var access = _mediaAccess is null ? MediaAccessStatus.Unrestricted : await _mediaAccess.RequestAccessAsync();
+        if (access.Level == MediaAccessLevel.Denied)
+        {
+            ShowResult("Photo and video access was not granted. Allow it in the app's settings, then try again.");
+            AppInfo.Current.ShowSettingsUI();
+            return;
+        }
+
+        var accessNote = (access.Level, access.LocationIncluded) switch
+        {
+            (MediaAccessLevel.Partial, false) => " Only the photos and videos you selected were read, without location.",
+            (MediaAccessLevel.Partial, true) => " Only the photos and videos you selected were read.",
+            (_, false) => " Photo location was not included.",
+            _ => string.Empty,
+        };
+
         using var operationCancellation = new CancellationTokenSource();
         _operationCancellation = operationCancellation;
         SetBusy(true);
@@ -112,7 +133,7 @@ public sealed partial class MainPage : ContentPage
         try
         {
             var result = await Task.Run(() => operation(progress, operationCancellation.Token), operationCancellation.Token);
-            ShowResult(resultText(result));
+            ShowResult(resultText(result) + accessNote);
         }
         catch (OperationCanceledException)
         {
@@ -132,7 +153,7 @@ public sealed partial class MainPage : ContentPage
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            ShowResult("The operation failed because the media folder could not be read.");
+            ShowResult("The operation failed because the media could not be read.");
         }
         finally
         {

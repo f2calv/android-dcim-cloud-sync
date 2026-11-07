@@ -9,7 +9,10 @@ today.
 
 The app opens one scrollable **Status** page.
 
-- **Android 13 or later:** the page is static. The app reads no media and has no backup controls.
+- **Android 13 or later:** the page adds **Scan media**. On first use Android asks for photo and video
+  access; the scan then reads the DCIM photos and videos the user allows, with their original bytes and
+  location, and reports the same totals as on Windows. Selecting only some photos limits the scan to
+  those, and the result says so. There is no **Back up** button on Android yet.
 - **Windows (development only):** the page adds a **Media** section that reads a local folder standing
   in for the phone's DCIM collection.
   - **Scan media** computes a SHA-256 hash of each photo and video and reports the item count, bytes
@@ -20,8 +23,7 @@ The app opens one scrollable **Status** page.
     (conflict) or is absent (unverified). A file edited during its upload is abandoned before commit
     and retried by the next run.
 
-Background scheduling, retries, Android media access, device credentials and deletion are not
-implemented.
+Android backup, device credentials, background scheduling, retries and deletion are not implemented.
 
 | Project | Purpose |
 | --- | --- |
@@ -113,7 +115,10 @@ Debug services on Windows first; switch to Android only for a deliberate device 
 ### Debug on Android
 
 Select a compatible Android emulator or a paired device in Visual Studio and deploy interactively.
-An Android emulator avoids enabling developer options on a managed phone.
+An Android emulator avoids enabling developer options on a managed phone. On an emulator, add
+synthetic photos to DCIM by dragging files onto the emulator window or with
+`adb push <file> /sdcard/DCIM/Camera/`, then rescan them with
+`adb shell content call --method scan_volume --uri content://media --arg external_primary`.
 
 ### Tests
 
@@ -136,16 +141,23 @@ There are no UI automation tests; the page is validated interactively.
 
 ## Privacy and Platform Limits
 
-The Android app reads no media, stores no credentials or backup state, and sends no product data
-off the device. Its [Android manifest](src/DcimCloudSync/Platforms/Android/AndroidManifest.xml)
-declares only:
+On Android the app reads DCIM photos and videos only when the user starts a scan, keeps the results in
+memory, stores no credentials or backup state, and sends no product data off the device. Its
+[Android manifest](src/DcimCloudSync/Platforms/Android/AndroidManifest.xml) declares:
 
 | Permission | Scope in this checkout |
 | --- | --- |
-| `android.permission.INTERNET` | Allows network access; the static page makes no network requests |
-| `android.permission.ACCESS_NETWORK_STATE` | Allows connectivity inspection; the static page does not inspect it |
+| `android.permission.READ_MEDIA_IMAGES` | Reads photos for the scan |
+| `android.permission.READ_MEDIA_VIDEO` | Reads videos for the scan |
+| `android.permission.READ_MEDIA_VISUAL_USER_SELECTED` | Android 14 and later: lets the user allow only selected photos and videos |
+| `android.permission.ACCESS_MEDIA_LOCATION` | Reads photos with their location metadata intact, so a future backup keeps it; it shows no prompt of its own |
+| `android.permission.INTERNET` | Allows network access; the Android app makes no network requests yet |
+| `android.permission.ACCESS_NETWORK_STATE` | Allows connectivity inspection; the Android app does not inspect it yet |
 
-No media, broad storage, notification or background-service permissions are declared. Android
+The app requests these only when **Scan media** is selected. When access is denied, it opens the
+app's settings instead of asking repeatedly. Location stays inside the photo bytes the app reads; it
+is never extracted, shown or logged. No broad storage, notification or background-service
+permissions are declared. Android
 application-data backup is disabled and cleartext traffic is disallowed. No background worker
 survives closing the app.
 

@@ -10,7 +10,9 @@ Follow the [root development instructions](../../README.md#local-development) fr
 root. On launch, the single **Status** page describes the current state. On Windows, it also shows a
 **Media** section with **Scan media**, **Back up** (only when a backup destination is configured) and
 **Cancel** buttons, an activity indicator and a result announced to screen readers. One operation runs
-at a time, off the UI thread. On Android, that section is hidden because no media source is registered.
+at a time, off the UI thread. On Android, the section shows **Scan media** and **Cancel**; there is no
+**Back up** button because no backup destination is registered there. Each operation first requests
+media access and appends a note when access is partial or location is excluded.
 
 ## Application Composition
 
@@ -22,8 +24,11 @@ at a time, off the UI thread. On Android, that section is hidden because no medi
 | [`AppShell`](AppShell.xaml.cs) | Single-page shell with its flyout disabled; hosts the injected page at the `main` route |
 | [`MainPage`](Pages/MainPage.xaml.cs) | Status text and, when the services are registered, the scan and backup controls sharing one cancellable runner |
 | [`WinUI.App`](Platforms/Windows/App.xaml.cs) | WinUI entry point that starts the MAUI app on Windows |
+| [`MauiProgram.Android`](Platforms/Android/MauiProgram.Android.cs) | Android-only registration of `TimeProvider`, media access, the MediaStore media source and the inventory service |
+| [`MediaStoreMediaSource`](Platforms/Android/Services/MediaStoreMediaSource.cs) | Queries the image and video collections of every external volume for DCIM rows and opens original bytes with `SetRequireOriginal` and original-format acceptance |
+| [`AndroidMediaAccess`](Platforms/Android/Services/AndroidMediaAccess.cs) | Requests the media permissions together and classifies the grant as full, partial or denied, with or without location |
 
-Android registers no product services yet. The media and backup contracts and services come from
+Android does not register a backup destination yet. The media and backup contracts and services come from
 [DcimCloudSync.Core](../DcimCloudSync.Core/README.md); the Windows target also references the
 [Azure destination](../DcimCloudSync.Storage.Azure/README.md).
 
@@ -39,11 +44,17 @@ artifact; neither is released to users. iOS and macOS are not targeted.
 
 The [manifest](Platforms/Android/AndroidManifest.xml) disables application-data backup
 (`android:allowBackup="false"`) and cleartext traffic (`android:usesCleartextTraffic="false"`).
-`INTERNET` and `ACCESS_NETWORK_STATE` are the only declared permissions. The current page uses
-neither; it does not request media access or inspect scoped storage.
+It declares `READ_MEDIA_IMAGES`, `READ_MEDIA_VIDEO`, `READ_MEDIA_VISUAL_USER_SELECTED`,
+`ACCESS_MEDIA_LOCATION`, `INTERNET` and `ACCESS_NETWORK_STATE`; the
+[root README](../../README.md#privacy-and-platform-limits) explains each. Media access is requested only
+when an operation starts, through MAUI's permissions API on the UI thread.
 
-No foreground service, scheduled background job, notification flow, boot receiver or Android
-media discovery is implemented. Closing or restarting the app cannot resume a backup because no
+Discovery reads only rows whose MediaStore relative path starts with `DCIM/`; MediaStore already
+excludes pending and trashed rows. Each item's relative path is relative to DCIM, prefixed with the volume
+name on removable storage, so blob names match the Windows folder source. Without
+`ACCESS_MEDIA_LOCATION` the source falls back to MediaStore's location-redacted bytes.
+
+No foreground service, scheduled background job, notification flow or boot receiver is implemented. Closing or restarting the app cannot resume a backup because no
 queue or backup state exists. There is no local or remote deletion behavior.
 
 ## Configuration and Dependencies

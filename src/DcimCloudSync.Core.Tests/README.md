@@ -16,9 +16,10 @@ dotnet test --project .\src\DcimCloudSync.Core.Tests\DcimCloudSync.Core.Tests.cs
 | [`FileSystemMediaSourceTests`](Tests/Unit/FileSystemMediaSourceTests.cs) | `Discovery` | 4 | 5 |
 | [`MediaInventoryServiceTests`](Tests/Unit/MediaInventoryServiceTests.cs) | `Hashing` | 3 | 3 |
 | [`BackupServiceTests`](Tests/Unit/BackupServiceTests.cs) | `Backup` | 6 | 7 |
-| **Total** | | **13** | **15** |
+| [`MediaStoreItemPathTests`](Tests/Unit/MediaStoreItemPathTests.cs) | `Discovery` | 3 | 20 |
+| **Total** | | **16** | **35** |
 
-The trait categories are `Discovery`, for finding and opening folder media; `Hashing`, for scan
+The trait categories are `Discovery`, for finding and opening folder media and mapping MediaStore rows; `Hashing`, for scan
 summaries, duplicates, unreadable files and cancellation; and `Backup`, for uploads, existing
 matching, conflicting and unverified backups, a concurrent writer, an item changed after hashing,
 unreadable files and destination failures. The `Backup` tests use the in-memory
@@ -41,6 +42,7 @@ graph TD
     Unit --> Source[FileSystemMediaSourceTests.cs]
     Unit --> Inventory[MediaInventoryServiceTests.cs]
     Unit --> Backup[BackupServiceTests.cs]
+    Unit --> MediaStore[MediaStoreItemPathTests.cs]
 ```
 
 ## Dependencies
