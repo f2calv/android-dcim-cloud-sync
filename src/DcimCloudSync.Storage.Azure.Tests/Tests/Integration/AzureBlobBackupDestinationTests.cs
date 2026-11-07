@@ -19,7 +19,7 @@ public sealed class AzureBlobBackupDestinationTests : TestBase
             Assert.False(await destination.TryCreateBackupAsync(photo, second, "bbb", TestContext.Current.CancellationToken));
 
         var record = await destination.FindBackupAsync(photo, TestContext.Current.CancellationToken);
-        Assert.Equal(new BackupRecord("aaa"), record);
+        Assert.Equal(new BackupRecord("aaa", photo.SizeBytes, photo.ModifiedUtc), record);
         var blob = new BlobContainerClient(ConnectionString, ContainerName).GetBlobClient("photos/Camera/IMG_0001.jpg");
         var properties = await blob.GetPropertiesAsync(cancellationToken: TestContext.Current.CancellationToken);
         Assert.Equal("image/jpeg", properties.Value.ContentType);
