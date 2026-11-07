@@ -186,7 +186,8 @@ function Install-Apk {
     $output = @(Invoke-Adb @arguments 2>&1 | ForEach-Object { "$_" })
     if ($LASTEXITCODE -ne 0 -or -not ($output -match '^Success')) {
         $last = if ($output.Count -gt 0) { $output[-1] } else { 'no output' }
-        throw "adb install failed: $last. A build signed with another key must be uninstalled first, which deletes its data."
+        $hint = if ($output -match 'INSTALL_FAILED_UPDATE_INCOMPATIBLE') { ' A build signed with another key must be uninstalled first, which deletes its data.' } else { '' }
+        throw "adb install failed: $last.$hint"
     }
 }
 #endregion

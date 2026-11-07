@@ -126,6 +126,11 @@ Describe 'Install-Apk' {
         { Install-Apk -Path 'app.apk' } | Should -Throw '*INSTALL_FAILED_UPDATE_INCOMPATIBLE*uninstalled first*'
     }
 
+    It 'Reports a missing device without the signature hint' {
+        Mock Invoke-Adb { $global:LASTEXITCODE = 1; 'adb.exe: no devices/emulators found' }
+        { Install-Apk -Path 'app.apk' } | Should -Throw -ExpectedMessage 'adb install failed: adb.exe: no devices/emulators found.'
+    }
+
     It 'Installs nothing with -WhatIf' {
         Mock Invoke-Adb { }
         Install-Apk -Path 'app.apk' -WhatIf
