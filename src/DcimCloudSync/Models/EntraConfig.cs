@@ -16,11 +16,11 @@ public sealed record EntraConfig
 
     /// <summary>Gets the directory (tenant) ID that owns the storage account, or <see langword="null"/> when not set.</summary>
     [RegularExpression("^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$")]
-    public string? TenantId { get; init; }
+    public string? TenantId { get; set; }
 
     /// <summary>Gets the application (client) ID of the public client app registration, or <see langword="null"/> when not set.</summary>
     [RegularExpression("^[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}$")]
-    public string? ClientId { get; init; }
+    public string? ClientId { get; set; }
 
     /// <summary>Gets a value indicating whether both identifiers are set.</summary>
     public bool IsConfigured => !string.IsNullOrWhiteSpace(TenantId) && !string.IsNullOrWhiteSpace(ClientId);

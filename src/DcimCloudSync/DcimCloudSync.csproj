@@ -16,6 +16,10 @@
            <MauiXaml Update="MyPage.xaml" Inflator="Runtime" /> (force runtime inflation) -->
     <MauiXamlInflator>SourceGen</MauiXamlInflator>
     <MauiEnableXamlCBindingWithSourceCompilation>true</MauiEnableXamlCBindingWithSourceCompilation>
+    <!-- Release builds are trimmed, which removes the reflection and type converters that runtime configuration binding
+         needs, such as the Uri converter; generated binding code keeps options binding working. It binds into existing
+         instances, so bound options properties must have public setters, not init. -->
+    <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
 
     <!-- Display name -->
     <ApplicationTitle>Android DCIM Cloud Sync</ApplicationTitle>

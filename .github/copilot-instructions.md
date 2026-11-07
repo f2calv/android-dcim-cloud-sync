@@ -42,6 +42,9 @@ a MediaStore change checkpoint; there is no per-item queue or local backup state
   `SignInRequiredException` as a notification. Notifications carry counts and sizes only.
 - Bump `Xamarin.AndroidX.Work.Runtime` only together with `Microsoft.Maui.Controls`; a newer WorkManager
   pulls AndroidX Lifecycle versions outside MAUI's ranges and restore fails with NU1608.
+- Release builds are trimmed and the app uses the configuration binding source generator. Give bound
+  options properties public setters: generated binding silently skips init-only properties. Validate
+  Android changes in a Release APK from `build-apk.ps1` as well as in a debug deployment.
 - Keep device deployment, signing and Play publishing deferred; CI builds unsigned artifacts only.
 - Preserve the tracked Visual Studio scaffold rather than replacing the application project.
 

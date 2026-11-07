@@ -13,6 +13,6 @@ public sealed record FileSystemMediaSourceConfig
     /// <summary>Gets the folder that stands in for the device's DCIM collection.</summary>
     /// <remarks>Defaults to a <c>DcimCloudSync</c> folder inside the user's Pictures folder.</remarks>
     [Required, MinLength(1)]
-    public string RootPath { get; init; } =
+    public string RootPath { get; set; } =
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "DcimCloudSync");
 }
