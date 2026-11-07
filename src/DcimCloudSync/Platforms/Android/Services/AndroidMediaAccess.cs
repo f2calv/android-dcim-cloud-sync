@@ -26,12 +26,12 @@ public sealed class AndroidMediaAccess : IMediaAccess
         var context = Platform.AppContext;
         bool IsGranted(string permission) => context.CheckSelfPermission(permission) == Permission.Granted;
 
-        var level = IsGranted(global::Android.Manifest.Permission.ReadMediaImages)
-                && IsGranted(global::Android.Manifest.Permission.ReadMediaVideo)
-            ? MediaAccessLevel.Full
-            : OperatingSystem.IsAndroidVersionAtLeast(34) && IsGranted(global::Android.Manifest.Permission.ReadMediaVisualUserSelected)
-                ? MediaAccessLevel.Partial
-                : MediaAccessLevel.Denied;
+        var level = MediaAccessLevel.Denied;
+        if (IsGranted(global::Android.Manifest.Permission.ReadMediaImages) && IsGranted(global::Android.Manifest.Permission.ReadMediaVideo))
+            level = MediaAccessLevel.Full;
+        else if (OperatingSystem.IsAndroidVersionAtLeast(34) && IsGranted(global::Android.Manifest.Permission.ReadMediaVisualUserSelected))
+            level = MediaAccessLevel.Partial;
+
         var locationIncluded = level != MediaAccessLevel.Denied && IsGranted(global::Android.Manifest.Permission.AccessMediaLocation);
         return new MediaAccessStatus(level, locationIncluded);
     }

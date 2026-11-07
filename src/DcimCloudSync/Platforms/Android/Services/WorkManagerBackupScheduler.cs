@@ -51,7 +51,7 @@ public sealed class WorkManagerBackupScheduler : IBackgroundBackupScheduler
             .SetConstraints(CreateConstraints(watchMedia: false))
             .SetInputData(BackupWorker.CreateInputData(BackupWorker.PeriodicTrigger))
             .Build();
-        _ = workManager.EnqueueUniquePeriodicWork(PeriodicWorkName, ExistingPeriodicWorkPolicy.Update!, (PeriodicWorkRequest)periodic);
+        _ = workManager.EnqueueUniquePeriodicWork(PeriodicWorkName, ExistingPeriodicWorkPolicy.Update!, periodic);
     }
 
     /// <summary>
@@ -67,12 +67,12 @@ public sealed class WorkManagerBackupScheduler : IBackgroundBackupScheduler
     /// <param name="context">The application context.</param>
     internal static void EnqueueRetry(Context context)
     {
-        var request = new OneTimeWorkRequest.Builder(Java.Lang.Class.FromType(typeof(BackupWorker)))
+        var request = (OneTimeWorkRequest)new OneTimeWorkRequest.Builder(Java.Lang.Class.FromType(typeof(BackupWorker)))
             .SetConstraints(CreateConstraints(watchMedia: false))
             .SetInputData(BackupWorker.CreateInputData(BackupWorker.RetryTrigger))
             .SetInitialDelay(RetryDelayMinutes, TimeUnit.Minutes!)!
             .Build();
-        _ = WorkManager.GetInstance(context).EnqueueUniqueWork(RetryWorkName, ExistingWorkPolicy.Keep!, (OneTimeWorkRequest)request);
+        _ = WorkManager.GetInstance(context).EnqueueUniqueWork(RetryWorkName, ExistingWorkPolicy.Keep!, request);
     }
 
     private static OneTimeWorkRequest CreateNewMediaRequest() =>

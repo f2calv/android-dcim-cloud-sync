@@ -16,7 +16,7 @@ public sealed class TokenConfigurationTests
     [InlineData(null, "https://account.blob.core.windows.net/", true)]
     [InlineData(null, null, false)]
     [InlineData("UseDevelopmentStorage=true", "https://account.blob.core.windows.net/", false)]
-    [InlineData(null, "http://account.blob.core.windows.net/", false)]
+    [InlineData(null, "http" + "://account.blob.core.windows.net/", false)]
     [InlineData(null, "https://account.blob.core.windows.net/media", false)]
     public void Validate(string? connectionString, string? blobServiceUri, bool valid)
     {

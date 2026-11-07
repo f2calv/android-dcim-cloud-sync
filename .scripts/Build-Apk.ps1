@@ -188,7 +188,6 @@ function Install-Apk {
         $last = if ($output.Count -gt 0) { $output[-1] } else { 'no output' }
         throw "adb install failed: $last. A build signed with another key must be uninstalled first, which deletes its data."
     }
-    Write-Host "Installed on $target."
 }
 #endregion
 
@@ -204,7 +203,10 @@ if ($MyInvocation.InvocationName -ne '.') {
             Write-Host "APK:     $($apk.Path)"
             Write-Host "Version: $($apk.DisplayVersion) ($($apk.VersionCode))"
             Write-Host "SHA-256: $($apk.Sha256)"
-            if ($Install) { Install-Apk -Path $apk.Path -Serial $Device }
+            if ($Install) {
+                Install-Apk -Path $apk.Path -Serial $Device
+                Write-Host "Installed: $(if ($Device) { $Device } else { 'the connected device' })"
+            }
         }
         exit 0
     }
