@@ -156,6 +156,44 @@ Android registration of the backup service, then validation V1-V5 on the emulato
 followed on the same branch: background runs only acquire tokens silently and notify the user when
 sign-in is needed (see the [app README](../src/DcimCloudSync/README.md#background-backup)).
 
+A trimmed Release APK, built with the repository's
+[APK script](../README.md#build-an-apk-for-a-phone), was also validated on the emulator on 2026-11-07:
+
+- it installed over the debug build, keeping the sign-in and settings;
+- a manual backup acquired its token silently;
+- a new photo started a background run, which posted its summary notification.
+
+The first Release build exposed a trimming defect: options bound as empty, which hid **Back up**. The app
+now uses the configuration binding source generator, and its options properties have public setters,
+because generated binding cannot assign init-only properties.
+
+### Remaining Steps to a Phone Trial
+
+1. Build the APK with `build-apk.ps1` on the machine whose debug key will sign every later update, and
+   install it on the emulator first.
+2. Before sideloading onto a phone enrolled in device management, check whether the policy blocks or
+   flags installing apps from unknown sources:
+   - a work-profile-only enrollment usually allows installing on the personal side;
+   - a fully managed device may treat sideloading like developer options.
+3. Copy the APK to the phone and install it. Enter the directory and application IDs, the blob service
+   URL and a dedicated test container in **Settings**.
+4. Grant **Allow limited access** to a few photos first. Run the first backup from the app on Wi-Fi
+   while charging; background runs scan incrementally only after a complete run has recorded a
+   checkpoint.
+5. Watch a few background runs. WorkManager stops a run after about ten minutes, so back up a long
+   video from the app if a background run cannot finish it.
+6. Then widen access to all photos, and point **Settings** at the production container once the trial
+   container matches the device's media.
+
+Suggested follow-up work:
+
+- Add a gitignored local `build-apk.psd1` for machine-specific defaults, such as the device serial or
+  a folder that syncs to the phone, if repeated builds need them.
+- Publish a release-signed APK or bundle from CI once a signing key is held as a secret; the current
+  CI builds an unsigned bundle only.
+- Run long uploads as a foreground `dataSync` service if large videos regularly miss the background
+  window, which the `TODO` on `BackupWorker` tracks.
+
 ## Open Questions and Reconsideration
 
 - Resolved: MSAL.NET stores its Android cache in app-private shared preferences, and its token cache
