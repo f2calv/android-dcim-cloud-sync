@@ -18,11 +18,13 @@ permission, and the **Settings** switch for automatic backup schedules backgroun
 
 | Source contract | Responsibility |
 | --- | --- |
-| [`MauiProgram`](MauiProgram.cs) | Creates the MAUI host, registers the page and calls the platform's service registration; adds debug logging in Debug builds only |
+| [`MauiProgram`](MauiProgram.cs) | Creates the MAUI host, registers the status and log pages, the file-backed backup log and the `Backup` options, and calls the platform's service registration; adds debug logging in Debug builds only |
 | [`MauiProgram.Windows`](Platforms/Windows/MauiProgram.Windows.cs) | Windows-only registration of configuration, `TimeProvider`, the folder media source and the inventory service, plus the Azure backup destination and backup service when a connection string is configured |
-| [`App`](App.xaml.cs) | Resolves the page from dependency injection for each window |
-| [`AppShell`](AppShell.xaml.cs) | Tab bar hosting the injected status page at `main`, plus the settings page at `settings` where the platform registers one |
-| [`MainPage`](Pages/MainPage.xaml.cs) | Status text and, when the services are registered, the scan and backup controls sharing one cancellable runner |
+| [`App`](App.xaml.cs) | Resolves the pages from dependency injection for each window |
+| [`AppShell`](AppShell.xaml.cs) | Tab bar hosting the injected status page at `main`, the settings page at `settings` where the platform registers one, and the log page at `log` |
+| [`MainPage`](Pages/MainPage.xaml.cs) | Status text and, when the services are registered, the scan and backup controls sharing one cancellable runner, with the current file's name and a progress bar while it is read or uploaded |
+| [`LogPage`](Pages/LogPage.xaml.cs) | Lists the 25 most recent scan and backup events, newest first, with file names and sizes in KB, and clears them |
+| [`FileBackupLog`](Services/FileBackupLog.cs) | Keeps those events in an app-private JSON file with source-generated serialization; a damaged file is replaced, and a write failure never stops a backup |
 | [`WinUI.App`](Platforms/Windows/App.xaml.cs) | WinUI entry point that starts the MAUI app on Windows |
 | [`MauiProgram.Android`](Platforms/Android/MauiProgram.Android.cs) | Android-only registration of preference-backed configuration, options, `TimeProvider`, media access, the MediaStore source, the checkpoint store, inventory and backup services, the MSAL token provider, the Azure destination, the background scheduler, runner and notifier, and the settings page |
 | [`MainApplication`](Platforms/Android/MainApplication.cs) | Creates the MAUI host for every process start, including WorkManager's, and re-applies the background schedule to match the saved settings |
@@ -34,7 +36,7 @@ permission, and the **Settings** switch for automatic backup schedules backgroun
 | [`BackupWorker`](Platforms/Android/Services/BackupWorker.cs) | WorkManager worker with a fixed Java name; runs one background backup and re-arms the new-media trigger |
 | [`BackgroundBackupRunner`](Platforms/Android/Services/BackgroundBackupRunner.cs) | Runs an incremental backup with sign-in prompts suppressed and decides between completing, retrying and notifying |
 | [`BackupNotifier`](Platforms/Android/Services/BackupNotifier.cs) | Posts the high-importance run summary and requests to act, with counts and sizes only |
-| [`SettingsPage`](Pages/SettingsPage.xaml.cs) | Edits and validates the backup settings, including automatic backup, and signs out |
+| [`SettingsPage`](Pages/SettingsPage.xaml.cs) | Edits and validates the backup settings, including automatic backup, the DCIM folder scope and the quick or full check, and signs out |
 | [`PreferencesBackupSettingsStore`](Services/PreferencesBackupSettingsStore.cs) | Saves the settings to MAUI `Preferences`, reloads configuration so options update without a restart, clears the checkpoint when the destination changes and re-applies the background schedule |
 | [`PreferencesBackupCheckpointStore`](Services/PreferencesBackupCheckpointStore.cs) | Keeps the incremental backup checkpoint in MAUI `Preferences` |
 | [`PreferencesConfigurationProvider`](Services/PreferencesConfigurationProvider.cs) | Exposes the saved settings as configuration keys |

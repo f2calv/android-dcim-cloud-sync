@@ -1,4 +1,7 @@
-﻿namespace DcimCloudSync;
+using DcimCloudSync.Services;
+using Microsoft.Extensions.Configuration;
+
+namespace DcimCloudSync;
 
 /// <summary>
 /// Configures and creates the MAUI application host.
@@ -14,6 +17,10 @@ public static partial class MauiProgram
         var builder = MauiApp.CreateBuilder();
         builder.UseMauiApp<App>();
         builder.Services.AddTransient<MainPage>();
+        builder.Services.AddSingleton<IBackupLog, FileBackupLog>();
+        builder.Services.AddTransient<LogPage>();
+        builder.Services.AddOptions<BackupConfig>()
+            .Bind(builder.Configuration.GetSection(BackupConfig.ConfigurationSectionName));
         AddPlatformServices(builder);
 
 #if DEBUG

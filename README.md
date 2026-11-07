@@ -19,6 +19,15 @@ The app opens one scrollable **Status** page.
   silently. Backups follow the same create-only rules as on Windows. While **automatic backup** is on in
   **Settings**, new DCIM photos and videos are also backed up in the background on Wi-Fi, and a short
   notification summarises each run that backs something up.
+- **Both targets:** while a backup runs, the page names the current file and shows how much of it has been
+  read or uploaded, so a large video visibly progresses. The **Log** tab lists the 25 most recent scan
+  and backup events with file names and sizes, newest first. **Settings** on Android, or
+  `DcimCloudSync__Backup__CheckMode` on Windows, selects the already-backed-up check:
+  - **Quick**, the default, skips an existing backup whose recorded size and modified time match the
+    file, without reading it.
+  - **Full** reads every file and compares its SHA-256.
+
+  Every upload records its SHA-256 either way.
 - **Windows (development only):** the page adds a **Media** section that reads a local folder standing
   in for the phone's DCIM collection.
   - **Scan media** computes a SHA-256 hash of each photo and video and reports the item count, bytes
@@ -215,8 +224,9 @@ There are no UI automation tests; the page is validated interactively.
 On Android the app reads DCIM photos and videos when the user starts a scan or backup, and, while
 automatic backup is on, when a background run starts. It sends media only to the storage container
 named in **Settings**, signed in as the user. Besides settings in app preferences and sign-in tokens in
-the Microsoft sign-in library's app-private cache, it stores only a MediaStore change checkpoint
-(volume versions and generations, nothing about individual items). Notifications show counts and sizes,
+the Microsoft sign-in library's app-private cache, it stores a MediaStore change checkpoint
+(volume versions and generations, nothing about individual items) and the **Log** tab's 25 most recent
+events, which name files, in an app-private file. Notifications show counts and sizes,
 never file names. No other product data leaves the device. Its
 [Android manifest](src/DcimCloudSync/Platforms/Android/AndroidManifest.xml) declares:
 

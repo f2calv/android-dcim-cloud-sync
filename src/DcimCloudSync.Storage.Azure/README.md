@@ -14,8 +14,11 @@ same contract.
   container layout can be kept.
 - **Create-only:** uploads are conditional on `If-None-Match: *`. An existing blob is never
   overwritten; the core backup service then compares hashes.
-- **Metadata:** the content SHA-256 is stored as `sha256` metadata, the MIME type as the content type,
-  and the configured access tier is applied.
+- **Metadata:** the content SHA-256 is stored as `sha256` metadata, and the source item's size and
+  modification time, in Unix seconds, as `sourcesize` and `sourcemodified`, so the quick check can
+  recognize an unchanged item without reading it. The MIME type is stored as the content type, and the
+  configured access tier is applied. Backups created before these keys existed fall back to the hash
+  comparison.
 - **Streaming:** content is streamed to the SDK, never buffered whole in memory.
 - **Authentication:** a connection string, or a blob service URL with the signed-in user's token from the
   core [`IAccessTokenProvider`](../DcimCloudSync.Core/Abstractions/IAccessTokenProvider.cs), adapted to the

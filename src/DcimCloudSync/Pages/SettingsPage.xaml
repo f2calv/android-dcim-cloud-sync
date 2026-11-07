@@ -76,6 +76,18 @@
                     SemanticProperties.Description="Also back up other DCIM folders" />
             </Grid>
 
+            <Label Text="Already-backed-up check" />
+            <Picker
+                x:Name="CheckModePicker"
+                SemanticProperties.Description="How backups decide that a file is already backed up">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Quick: compare name, size and modified time</x:String>
+                        <x:String>Full: compare the SHA-256 of every file (reads every file)</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
+
             <HorizontalStackLayout Spacing="12">
                 <Button
                     Text="Save"

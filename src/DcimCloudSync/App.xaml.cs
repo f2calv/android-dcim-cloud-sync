@@ -21,5 +21,8 @@ public sealed partial class App : Application
 
     /// <inheritdoc/>
     protected override Window CreateWindow(IActivationState? activationState) =>
-        new(new AppShell(_serviceProvider.GetRequiredService<MainPage>(), _serviceProvider.GetService<SettingsPage>()));
+        new(new AppShell(
+            _serviceProvider.GetRequiredService<MainPage>(),
+            _serviceProvider.GetService<SettingsPage>(),
+            _serviceProvider.GetService<LogPage>()));
 }

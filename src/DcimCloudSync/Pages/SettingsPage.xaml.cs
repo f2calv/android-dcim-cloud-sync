@@ -36,6 +36,7 @@ public sealed partial class SettingsPage : ContentPage
         AccessTierEntry.Text = settings.AccessTier;
         AutomaticBackupSwitch.IsToggled = settings.AutomaticBackup;
         AllFoldersIncludedSwitch.IsToggled = settings.AllFoldersIncluded;
+        CheckModePicker.SelectedIndex = settings.CheckMode == BackupCheckMode.Full ? 1 : 0;
     }
 
     private async void OnSaveClicked(object? sender, EventArgs e)
@@ -50,7 +51,8 @@ public sealed partial class SettingsPage : ContentPage
             VideoPrefixEntry.Text ?? string.Empty,
             AccessTierEntry.Text ?? string.Empty,
             automaticBackup,
-            AllFoldersIncludedSwitch.IsToggled));
+            AllFoldersIncludedSwitch.IsToggled,
+            CheckModePicker.SelectedIndex == 1 ? BackupCheckMode.Full : BackupCheckMode.Quick));
         if (errors.Count > 0)
         {
             ShowStatus(string.Join(" ", errors));

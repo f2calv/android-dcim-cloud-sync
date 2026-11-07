@@ -4,7 +4,8 @@ namespace DcimCloudSync.Services;
 /// Stores one block blob per media item in Azure Blob Storage, named by media-type prefix and relative path.
 /// </summary>
 /// <remarks>
-/// Uploads are create-only and record the content SHA-256 as blob metadata. Constructing the destination reads no
+/// Uploads are create-only and record the content SHA-256, the source size and the source modification time as blob
+/// metadata, so a quick check can recognize an unchanged item without reading it. Constructing the destination reads no
 /// configuration and performs no network I/O; the client is created on first use, and a missing container is created
 /// then only when configured. A failed creation is retried on the next operation. Settings are read on every operation, so a
 /// changed endpoint or container takes effect without a restart. A blob service URL authenticates with the signed-in user's
@@ -19,6 +20,12 @@ public sealed class AzureBlobBackupDestination(
 {
     /// <summary>The blob metadata key that records the content SHA-256.</summary>
     public const string Sha256MetadataKey = "sha256";
+
+    /// <summary>The blob metadata key that records the source item's size in bytes.</summary>
+    public const string SourceSizeMetadataKey = "sourcesize";
+
+    /// <summary>The blob metadata key that records the source item's modification time, in Unix seconds.</summary>
+    public const string SourceModifiedMetadataKey = "sourcemodified";
 
     private readonly SemaphoreSlim _initializationLock = new(1, 1);
     private (string Key, ContainerStorage Storage)? _storage;
@@ -52,9 +59,13 @@ public sealed class AzureBlobBackupDestination(
             if (metadata is null)
                 return null;
 
-            var sha256 = metadata.FirstOrDefault(entry =>
-                string.Equals(entry.Key, Sha256MetadataKey, StringComparison.OrdinalIgnoreCase)).Value;
-            return new BackupRecord(sha256);
+            string? Read(string key) => metadata.FirstOrDefault(entry => string.Equals(entry.Key, key, StringComparison.OrdinalIgnoreCase)).Value;
+            return new BackupRecord(
+                Read(Sha256MetadataKey),
+                long.TryParse(Read(SourceSizeMetadataKey), NumberStyles.None, CultureInfo.InvariantCulture, out var size) ? size : null,
+                long.TryParse(Read(SourceModifiedMetadataKey), NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var modified)
+                    ? DateTimeOffset.FromUnixTimeSeconds(modified)
+                    : null);
         }
         catch (RequestFailedException ex)
         {
@@ -75,7 +86,12 @@ public sealed class AzureBlobBackupDestination(
             {
                 AccessTier = config.CurrentValue.AccessTier is { } tier ? (AccessTier?)new AccessTier(tier) : null,
                 ContentType = item.MimeType,
-                Metadata = new Dictionary<string, string> { [Sha256MetadataKey] = sha256 },
+                Metadata = new Dictionary<string, string>
+                {
+                    [Sha256MetadataKey] = sha256,
+                    [SourceSizeMetadataKey] = item.SizeBytes.ToString(CultureInfo.InvariantCulture),
+                    [SourceModifiedMetadataKey] = item.ModifiedUtc.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture),
+                },
             };
             return await storage.UploadBlobIfNotExistsAsync(GetBlobName(item), content, args, cancellationToken).ConfigureAwait(false);
         }

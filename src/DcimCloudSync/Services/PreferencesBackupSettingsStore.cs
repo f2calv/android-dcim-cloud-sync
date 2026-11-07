@@ -30,6 +30,7 @@ public sealed class PreferencesBackupSettingsStore(
     private const string VideoPrefixKey = AzureBlobBackupConfig.ConfigurationSectionName + ":" + nameof(AzureBlobBackupConfig.VideoPrefix);
     private const string AccessTierKey = AzureBlobBackupConfig.ConfigurationSectionName + ":" + nameof(AzureBlobBackupConfig.AccessTier);
     private const string AllFoldersIncludedKey = MediaStoreMediaSourceConfig.ConfigurationSectionName + ":" + nameof(MediaStoreMediaSourceConfig.AllFoldersIncluded);
+    private const string CheckModeKey = BackupConfig.ConfigurationSectionName + ":" + nameof(BackupConfig.CheckMode);
 
     /// <summary>The configuration keys this store owns.</summary>
     public static readonly IReadOnlyList<string> Keys =
@@ -42,6 +43,7 @@ public sealed class PreferencesBackupSettingsStore(
         VideoPrefixKey,
         AccessTierKey,
         AllFoldersIncludedKey,
+        CheckModeKey,
     ];
 
     /// <inheritdoc/>
@@ -57,7 +59,8 @@ public sealed class PreferencesBackupSettingsStore(
             preferences.Get(VideoPrefixKey, defaults.VideoPrefix),
             preferences.Get(AccessTierKey, string.Empty),
             preferences.Get(AutomaticBackupKey, true),
-            bool.TryParse(preferences.Get(AllFoldersIncludedKey, string.Empty), out var allFoldersIncluded) && allFoldersIncluded);
+            bool.TryParse(preferences.Get(AllFoldersIncludedKey, string.Empty), out var allFoldersIncluded) && allFoldersIncluded,
+            Enum.TryParse<BackupCheckMode>(preferences.Get(CheckModeKey, string.Empty), out var checkMode) ? checkMode : BackupCheckMode.Quick);
     }
 
     /// <inheritdoc/>
@@ -99,6 +102,7 @@ public sealed class PreferencesBackupSettingsStore(
         preferences.Set(AutomaticBackupKey, trimmed.AutomaticBackup);
         // Stored as text because the configuration provider exposes every key as a string.
         preferences.Set(AllFoldersIncludedKey, trimmed.AllFoldersIncluded ? bool.TrueString : bool.FalseString);
+        preferences.Set(CheckModeKey, trimmed.CheckMode.ToString());
         configuration.Reload();
         scheduler.Apply(trimmed.AutomaticBackup);
         return [];
