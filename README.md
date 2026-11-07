@@ -114,11 +114,15 @@ Debug services on Windows first; switch to Android only for a deliberate device 
 
 ### Debug on Android
 
-Select a compatible Android emulator or a paired device in Visual Studio and deploy interactively.
+Select a compatible Android emulator or a paired device in Visual Studio and deploy interactively, or
+from the command line with
+`dotnet build .\src\DcimCloudSync\DcimCloudSync.csproj -t:Run -f net10.0-android`.
 An Android emulator avoids enabling developer options on a managed phone. On an emulator, add
 synthetic photos to DCIM by dragging files onto the emulator window or with
 `adb push <file> /sdcard/DCIM/Camera/`, then rescan them with
-`adb shell content call --method scan_volume --uri content://media --arg external_primary`.
+`adb shell content call --method scan_volume --uri content://media --arg external_primary`. To see the
+permission prompt again, for example to test **Allow limited access** or **Don't allow**, reset the
+app's permissions with `adb shell pm reset-permissions -p io.github.f2calv.androiddcimcloudsync`.
 
 ### Tests
 
