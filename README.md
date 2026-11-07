@@ -95,8 +95,10 @@ dotnet build .\android-dcim-cloud-sync.slnx --configuration Release
 [CI](.github/workflows/ci.yml) produces unsigned Android validation bundles and a self-contained,
 unpackaged Windows development artifact named `DcimCloudSync-windows-x64-<version>`, kept for
 14 days. Download it from the run's **Artifacts** section, extract it and start `DcimCloudSync.exe`;
-no .NET or Windows App SDK install is needed. These are test artifacts, not signed or distributed
-product releases. See the [validation flow](docs/architecture.md#validation-flow).
+no .NET or Windows App SDK install is needed. On `main` and same-repository pull requests, CI also
+builds `android-apk-<version>`, a sideload APK [signed with the sideload keystore](#build-an-apk-for-a-phone),
+kept for 14 days. These are test artifacts, not release-signed or distributed product releases. See
+the [validation flow](docs/architecture.md#validation-flow).
 
 ### Local Azure Storage
 
@@ -155,14 +157,27 @@ phone. To sideload onto a phone without enabling debugging, build a Release APK:
 On Linux or macOS, run `./build-apk.sh` with the same arguments. The
 [script](.scripts/Build-Apk.ps1):
 
-- cleans and publishes a trimmed Release build signed with this machine's Android debug key;
+- cleans and publishes a trimmed Release build;
+- signs it with the sideload keystore when available, otherwise with this machine's Android debug key;
 - sets a version code that grows each minute, and checks that the APK carries it;
-- prints the APK's path and SHA-256.
+- prints the APK's path, SHA-256 and signing key.
 
-Each build uses the same debug key and a higher version code, so it installs over the previous one
-and keeps the sign-in and settings. A build from another machine has a different debug key and
-must be uninstalled first, which deletes the app's data. The APK is for your own devices only:
-it is not release-signed. It contains no settings or credentials.
+Android installs an update only when it is signed with the same key, and keeps the sign-in and
+settings when it does. The sideload keystore lets local and CI builds update each other. The script
+reads it from, in order:
+
+1. `ANDROID_SIGNING_KEYSTORE_BASE64` and `ANDROID_SIGNING_KEYSTORE_PASSWORD`, which CI sets from the
+   `ANDROID_SIDELOAD_KEYSTORE_*` repository secrets;
+2. the Azure Key Vault named by `ANDROID_SIGNING_KEY_VAULT`, through the signed-in Azure CLI, from the
+   secrets `dcim-android-sideload-keystore` (base64 PKCS12) and `dcim-android-sideload-keystore-password`;
+3. otherwise this machine's debug key.
+
+`ANDROID_SIGNING_KEY_ALIAS` overrides the alias, `dcim-sideload`. The signing values reach MSBuild only as
+environment properties during the build, and the temporary keystore file is deleted afterwards.
+Switching an installed app between keys requires uninstalling it first, which deletes its data. The
+APK is for your own devices only: it is not release-signed. It contains no settings or credentials.
+
+To download a CI build instead, open a run's **Artifacts** section and take `android-apk-<version>`.
 
 Copy the APK to the phone, for example through a synced cloud folder or a USB file transfer, and open
 it with **Files**, allowing that app to install unknown apps. Test a Release build on the emulator

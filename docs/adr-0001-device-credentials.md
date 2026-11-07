@@ -195,8 +195,9 @@ These items concern media discovery, scheduling and distribution, not device cre
 - [ ] Confirm that the quick check skips unchanged items on a rerun once uploads record source size
   and modification time.
 - [ ] Point **Settings** at the production container once the trial container matches the phone.
-- [ ] Publish a release-signed APK or bundle from CI once a signing key is held as a secret; CI builds
-  an unsigned bundle only.
+- [x] Build a sideload APK in CI, signed with a sideload keystore held in repository secrets and Key Vault,
+  so local and CI builds update each other.
+- [ ] Publish a release-signed bundle for distribution once a release key and Play listing exist.
 - [ ] Run long uploads as a foreground `dataSync` service if large videos regularly miss the
   background window; the `TODO` on `BackupWorker` tracks this.
 - [ ] Add a gitignored local `build-apk.psd1` for machine-specific defaults if repeated builds need them.

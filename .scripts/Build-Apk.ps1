@@ -5,13 +5,19 @@
 Builds a Release APK of the Android app for local sideload testing.
 
 .DESCRIPTION
-Publishes src/DcimCloudSync for net10.0-android as an APK signed with this machine's Android debug
-key, then copies it to an output folder under a versioned name and prints its SHA-256. Every build
-uses the same debug key and a version code that grows each minute, so a newer build installs over
-an older one and keeps the app's sign-in and settings.
+Publishes src/DcimCloudSync for net10.0-android as a Release APK, then copies it to an output folder under a
+versioned name and prints its SHA-256. The version code grows each minute, so a newer build installs over an
+older one signed with the same key and keeps the app's sign-in and settings.
 
-The APK is for testing on your own devices only: the debug key is not a release key, and the
-build carries no backup settings or credentials, which are entered on the device.
+The APK is signed with the shared sideload keystore when one is available, so local and CI builds update each
+other:
+- ANDROID_SIGNING_KEYSTORE_BASE64 and ANDROID_SIGNING_KEYSTORE_PASSWORD, as CI sets from repository secrets;
+- otherwise the Key Vault named by ANDROID_SIGNING_KEY_VAULT, read with the signed-in Azure CLI;
+- otherwise this machine's Android debug key.
+
+ANDROID_SIGNING_KEY_ALIAS overrides the key alias, dcim-sideload. Signing values reach MSBuild only as
+environment properties during the build, and the temporary keystore file is deleted afterwards. The APK is for
+testing on your own devices only, and carries no backup settings or credentials, which are entered on the device.
 
 .PARAMETER RepositoryRoot
 The repository root. Defaults to the parent of this script's folder.
@@ -38,7 +44,7 @@ The adb serial of the target when more than one emulator or device is connected.
 
 .NOTES
 Needs the .NET SDK selected by global.json with the maui-android workload, the Android SDK and a JDK;
--Install also needs adb. Builds take several minutes.
+-Install also needs adb, and Key Vault signing the Azure CLI. Builds take several minutes.
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(
@@ -58,6 +64,61 @@ function Invoke-DotNet { & dotnet @args }
 function Invoke-Git { & git @args }
 function Invoke-Adb { & (Resolve-AdbPath) @args }
 function Invoke-Aapt2 { & (Resolve-Aapt2Path) @args }
+function Invoke-Az { & az @args }
+#endregion
+
+#region Signing
+$script:KeyVaultKeystoreSecret = 'dcim-android-sideload-keystore'
+$script:KeyVaultPasswordSecret = 'dcim-android-sideload-keystore-password'
+
+function Get-SigningKeystore {
+    param([Parameter(Mandatory)][string]$Directory)
+
+    $base64 = $env:ANDROID_SIGNING_KEYSTORE_BASE64
+    $password = $env:ANDROID_SIGNING_KEYSTORE_PASSWORD
+    $source = 'environment'
+    if (-not $base64 -and $env:ANDROID_SIGNING_KEY_VAULT) {
+        $vault = $env:ANDROID_SIGNING_KEY_VAULT
+        $failure = "Could not read the signing keystore from Key Vault '$vault'. Sign in with 'az login', or clear ANDROID_SIGNING_KEY_VAULT to sign with the debug key."
+        $base64 = (@(Invoke-Az keyvault secret show --vault-name $vault --name $script:KeyVaultKeystoreSecret --query value -o tsv 2>$null) -join '').Trim()
+        if ($LASTEXITCODE -ne 0 -or -not $base64) { throw $failure }
+        $password = (@(Invoke-Az keyvault secret show --vault-name $vault --name $script:KeyVaultPasswordSecret --query value -o tsv 2>$null) -join '').Trim()
+        if ($LASTEXITCODE -ne 0 -or -not $password) { throw $failure }
+        $source = 'Key Vault'
+    }
+
+    if (-not $base64) { return $null }
+    if (-not $password) { throw 'ANDROID_SIGNING_KEYSTORE_BASE64 is set without ANDROID_SIGNING_KEYSTORE_PASSWORD.' }
+
+    New-Item -ItemType Directory -Path $Directory -Force | Out-Null
+    $path = Join-Path $Directory 'signing.p12'
+    try {
+        [IO.File]::WriteAllBytes($path, [Convert]::FromBase64String($base64))
+    }
+    catch [FormatException] {
+        throw 'The signing keystore is not valid base64.'
+    }
+
+    $alias = if ($env:ANDROID_SIGNING_KEY_ALIAS) { $env:ANDROID_SIGNING_KEY_ALIAS } else { 'dcim-sideload' }
+    return [pscustomobject]@{ Path = $path; Password = $password; Alias = $alias; Source = $source }
+}
+
+function Set-SigningEnvironment {
+    param($Keystore)
+
+    $names = 'AndroidKeyStore', 'AndroidSigningKeyStore', 'AndroidSigningKeyAlias', 'AndroidSigningKeyPass', 'AndroidSigningStorePass'
+    if (-not $Keystore) {
+        foreach ($name in $names) { Remove-Item -Path "Env:$name" -ErrorAction SilentlyContinue }
+        return
+    }
+
+    # MSBuild reads environment variables as properties, so signing values never appear on a command line.
+    Set-Item -Path Env:AndroidKeyStore -Value 'true'
+    Set-Item -Path Env:AndroidSigningKeyStore -Value $Keystore.Path
+    Set-Item -Path Env:AndroidSigningKeyAlias -Value $Keystore.Alias
+    Set-Item -Path Env:AndroidSigningKeyPass -Value $Keystore.Password
+    Set-Item -Path Env:AndroidSigningStorePass -Value $Keystore.Password
+}
 #endregion
 
 #region Helpers
@@ -71,12 +132,15 @@ function Get-ApkVersionCode {
 }
 
 function Get-ApkDisplayVersion {
-    param([Parameter(Mandatory)][string]$Root)
+    param(
+        [Parameter(Mandatory)][string]$Root,
+        [string]$Label = 'local'
+    )
 
     $tag = @(Invoke-Git -C $Root describe --tags --abbrev=0 2>$null)
     $commit = @(Invoke-Git -C $Root rev-parse --short HEAD 2>$null)
     $base = if ($tag.Count -gt 0 -and $tag[0] -match '^\d+\.\d+\.\d+$') { $tag[0] } else { '0.0.0' }
-    $suffix = if ($commit.Count -gt 0 -and $commit[0]) { "-local.$($commit[0])" } else { '-local' }
+    $suffix = if ($commit.Count -gt 0 -and $commit[0]) { "-$Label.$($commit[0])" } else { "-$Label" }
     return "$base$suffix"
 }
 
@@ -139,9 +203,12 @@ function Build-Apk {
 
     New-Item -ItemType Directory -Path $Destination -Force | Out-Null
     $publishDirectory = Join-Path $Destination 'publish'
+    $signingDirectory = Join-Path $Destination 'signing'
     if (Test-Path -LiteralPath $publishDirectory) { Remove-Item -LiteralPath $publishDirectory -Recurse -Force }
     Push-Location -LiteralPath $Root
     try {
+        $keystore = Get-SigningKeystore -Directory $signingDirectory
+        Set-SigningEnvironment -Keystore $keystore
         # Run from the root so global.json selects the SDK; without AndroidKeyStore the debug key signs the APK.
         # Clean first: an incremental publish keeps the previous package when only the version changes.
         Invoke-DotNet clean $project -f net10.0-android -c Release -nologo -v q | Out-Host
@@ -151,6 +218,8 @@ function Build-Apk {
         if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed with exit code $LASTEXITCODE." }
     }
     finally {
+        Set-SigningEnvironment -Keystore $null
+        if (Test-Path -LiteralPath $signingDirectory) { Remove-Item -LiteralPath $signingDirectory -Recurse -Force }
         Pop-Location
     }
 
@@ -167,6 +236,7 @@ function Build-Apk {
         Sha256         = (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant()
         VersionCode    = $Code
         DisplayVersion = $DisplayVersion
+        SignedWith     = if ($keystore) { "sideload keystore ($($keystore.Source))" } else { 'this machine''s debug key' }
     }
 }
 
@@ -197,13 +267,14 @@ if ($MyInvocation.InvocationName -ne '.') {
         $root = (Resolve-Path -LiteralPath $RepositoryRoot).Path
         $destination = if ($OutputDirectory) { $OutputDirectory } else { Join-Path $root 'artifacts/apk' }
         $code = if ($PSBoundParameters.ContainsKey('VersionCode')) { $VersionCode } else { Get-ApkVersionCode -Now ([DateTimeOffset]::UtcNow) }
-        $displayVersion = Get-ApkDisplayVersion -Root $root
+        $displayVersion = Get-ApkDisplayVersion -Root $root -Label $(if ($env:GITHUB_ACTIONS -eq 'true') { 'ci' } else { 'local' })
 
         $apk = Build-Apk -Root $root -Destination $destination -Code $code -DisplayVersion $displayVersion
         if ($apk) {
             Write-Host "APK:     $($apk.Path)"
             Write-Host "Version: $($apk.DisplayVersion) ($($apk.VersionCode))"
             Write-Host "SHA-256: $($apk.Sha256)"
+            Write-Host "Signed:  $($apk.SignedWith)"
             if ($Install) {
                 Install-Apk -Path $apk.Path -Serial $Device
                 Write-Host "Installed: $(if ($Device) { $Device } else { 'the connected device' })"
