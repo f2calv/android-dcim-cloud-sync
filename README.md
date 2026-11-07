@@ -1,21 +1,22 @@
 # Android DCIM Cloud Sync
 
-Android DCIM Cloud Sync is a .NET 10 MAUI learning project for a photo and video backup application.
-Android is the product platform. A Windows target exists so services can be developed and debugged on
-a workstation before they are tried on a phone. Backup works only from the Windows development target
-today.
+Android DCIM Cloud Sync is a .NET 10 MAUI app, in development preview, that backs up the photos and
+videos on an Android phone to the owner's Azure Blob Storage container. It signs in with the owner's
+Microsoft account, uploads each file once, never overwrites or deletes, and can back up new media in the
+background. Android is the product platform. A Windows target exists so services can be developed and
+debugged on a workstation before they are tried on a phone.
 
 ## Current Application
 
-The app opens one scrollable **Status** page.
+The app opens on a **Status** page, with a **Log** tab and, on Android, a **Settings** tab.
 
 - **Android 13 or later:** the page adds **Scan media**. On first use Android asks for photo and video
   access; the scan then reads the photos and videos in the camera folder, `DCIM/Camera`, that the user
   allows, with their original bytes and location, and reports the same totals as on Windows. Other DCIM
   folders, such as those other apps create, are skipped unless **Also back up other DCIM folders** is
   on in **Settings**. Selecting only some photos limits the scan to those, and the result says so.
-  **Back up** appears once the **Settings** tab holds the storage and
-  sign-in details; the first backup opens a Microsoft sign-in in the browser, after which tokens refresh
+  **Back up** appears once the **Settings** tab holds the storage and sign-in details; the first backup
+  opens a Microsoft sign-in in the browser, after which tokens refresh
   silently. Backups follow the same create-only rules as on Windows. While **automatic backup** is on in
   **Settings**, new DCIM photos and videos are also backed up in the background on Wi-Fi, and a short
   notification summarises each run that backs something up.
