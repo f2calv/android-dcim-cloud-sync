@@ -26,7 +26,7 @@ permission, and the **Settings** switch for automatic backup schedules backgroun
 | [`WinUI.App`](Platforms/Windows/App.xaml.cs) | WinUI entry point that starts the MAUI app on Windows |
 | [`MauiProgram.Android`](Platforms/Android/MauiProgram.Android.cs) | Android-only registration of preference-backed configuration, options, `TimeProvider`, media access, the MediaStore source, the checkpoint store, inventory and backup services, the MSAL token provider, the Azure destination, the background scheduler, runner and notifier, and the settings page |
 | [`MainApplication`](Platforms/Android/MainApplication.cs) | Creates the MAUI host for every process start, including WorkManager's, and re-applies the background schedule to match the saved settings |
-| [`MediaStoreMediaSource`](Platforms/Android/Services/MediaStoreMediaSource.cs) | Queries the image and video collections of every external volume for DCIM rows, optionally only rows changed since a MediaStore generation, and opens original bytes with `SetRequireOriginal` and original-format acceptance |
+| [`MediaStoreMediaSource`](Platforms/Android/Services/MediaStoreMediaSource.cs) | Queries the image and video collections of every external volume for rows directly in DCIM, or in its subfolders too when configured, optionally only rows changed since a MediaStore generation, and opens original bytes with `SetRequireOriginal` and original-format acceptance |
 | [`AndroidMediaAccess`](Platforms/Android/Services/AndroidMediaAccess.cs) | Requests the media permissions together, or checks them without prompting, and classifies the grant as full, partial or denied, with or without location |
 | [`MsalAccessTokenProvider`](Platforms/Android/Services/MsalAccessTokenProvider.cs) | Acquires storage tokens silently, or interactively in the system browser without the broker, never in the background; signs out by removing cached accounts |
 | [`MsalActivity`](Platforms/Android/MsalActivity.cs) | Receives the `io.github.f2calv.androiddcimcloudsync://auth` sign-in redirect |
@@ -61,7 +61,10 @@ library manifest adds `WAKE_LOCK`, `RECEIVE_BOOT_COMPLETED` and `FOREGROUND_SERV
 access is requested only when an operation starts or settings are saved, through MAUI's permissions API
 on the UI thread; background runs only check it.
 
-Discovery reads only rows whose MediaStore relative path starts with `DCIM/`; MediaStore already
+Discovery reads only rows whose MediaStore relative path is exactly `DCIM/`, or, when
+`MediaStoreMediaSource:SubfoldersIncluded` is set from **Settings**, starts with `DCIM/`. Subfolders are
+off by default because they often belong to other apps; some cameras save to `DCIM/Camera`, which needs
+the setting. Changing it clears the incremental checkpoint. MediaStore already
 excludes pending and trashed rows. Each item's relative path is relative to DCIM, prefixed with the volume
 name on removable storage, so blob names match the Windows folder source. Without
 `ACCESS_MEDIA_LOCATION` the source falls back to MediaStore's location-redacted bytes.
@@ -99,8 +102,8 @@ The app has no queue or per-item state and no deletion behavior.
 ## Configuration and Dependencies
 
 On Android, the **Settings** tab saves the directory (tenant) ID, application (client) ID, blob service URL,
-container, prefixes and access tier to MAUI `Preferences`, bound as the `Entra` and `AzureBlobBackup`
-configuration sections. None is a secret; never package them. MSAL keeps sign-in tokens in its own
+container, prefixes, access tier and DCIM subfolder choice to MAUI `Preferences`, bound as the `Entra`,
+`AzureBlobBackup` and `MediaStoreMediaSource` configuration sections. None is a secret; never package them. MSAL keeps sign-in tokens in its own
 app-private cache. Do not supply connection strings or keys to the Android app.
 
 On Windows, environment variables prefixed `DcimCloudSync__` are added to configuration.

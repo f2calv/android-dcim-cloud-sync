@@ -65,6 +65,17 @@
                     SemanticProperties.Description="Back up new photos and videos automatically on Wi-Fi" />
             </Grid>
 
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <Label
+                    Text="Also back up DCIM subfolders, such as DCIM/Camera or folders that other apps create"
+                    VerticalOptions="Center" />
+                <Switch
+                    x:Name="SubfoldersIncludedSwitch"
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    SemanticProperties.Description="Also back up DCIM subfolders" />
+            </Grid>
+
             <HorizontalStackLayout Spacing="12">
                 <Button
                     Text="Save"

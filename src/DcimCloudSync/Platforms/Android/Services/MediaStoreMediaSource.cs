@@ -3,6 +3,7 @@ using Android.Content.PM;
 using Android.OS;
 using Android.Provider;
 using Microsoft.Maui.ApplicationModel;
+using Microsoft.Extensions.Options;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
@@ -12,7 +13,8 @@ namespace DcimCloudSync.Services;
 /// Discovers DCIM photos and videos through Android MediaStore and opens their original bytes.
 /// </summary>
 /// <remarks>
-/// Queries the image and video collections of every external volume for rows whose relative path starts with DCIM;
+/// Queries the image and video collections of every external volume for rows directly in DCIM, or, when
+/// <see cref="MediaStoreMediaSourceConfig.SubfoldersIncluded"/> is set, in DCIM and its subfolders;
 /// pending and trashed rows are excluded by MediaStore. When the app holds <c>ACCESS_MEDIA_LOCATION</c>, content opens
 /// through <see cref="MediaStore.SetRequireOriginal(global::Android.Net.Uri)"/> and accepts the original format, so photo
 /// location is kept and HEVC video is not transcoded; otherwise MediaStore returns location-redacted bytes. Only the rows
@@ -21,7 +23,8 @@ namespace DcimCloudSync.Services;
 /// lists rows whose <c>generation_modified</c> is newer. A volume whose version changed, because its index was rebuilt, or
 /// that the token does not name is listed in full.
 /// </remarks>
-public sealed class MediaStoreMediaSource : IChangeTrackingMediaSource
+/// <param name="config">Selects whether DCIM subfolders are read.</param>
+public sealed class MediaStoreMediaSource(IOptionsMonitor<MediaStoreMediaSourceConfig> config) : IChangeTrackingMediaSource
 {
     private const string AnyMimeType = "*/*";
     private const char TokenVolumeSeparator = '\n';
@@ -116,17 +119,19 @@ public sealed class MediaStoreMediaSource : IChangeTrackingMediaSource
         }
     }
 
-    private static async IAsyncEnumerable<MediaItem> DiscoverSinceAsync(
+    private async IAsyncEnumerable<MediaItem> DiscoverSinceAsync(
         Dictionary<string, long> generations,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         var context = Platform.AppContext;
+        // LIKE without a wildcard matches DCIM itself case-insensitively; with one it also matches every subfolder.
+        var pathPattern = config.CurrentValue.SubfoldersIncluded ? $"{MediaStoreItemPath.DcimPrefix}%" : MediaStoreItemPath.DcimPrefix;
         foreach (var volumeName in MediaStore.GetExternalVolumeNames(context))
         {
             long? sinceGeneration = generations.TryGetValue(volumeName, out var generation) ? generation : null;
             foreach (var collection in new[] { MediaStoreItemPath.ImagesCollection, MediaStoreItemPath.VideoCollection })
             {
-                foreach (var item in Query(context.ContentResolver!, volumeName, collection, sinceGeneration, cancellationToken))
+                foreach (var item in Query(context.ContentResolver!, volumeName, collection, pathPattern, sinceGeneration, cancellationToken))
                     yield return item;
 
                 await Task.Yield();
@@ -138,6 +143,7 @@ public sealed class MediaStoreMediaSource : IChangeTrackingMediaSource
         ContentResolver resolver,
         string volumeName,
         string collection,
+        string pathPattern,
         long? sinceGeneration,
         CancellationToken cancellationToken)
     {
@@ -149,12 +155,12 @@ public sealed class MediaStoreMediaSource : IChangeTrackingMediaSource
                 $"{MediaStore.IMediaColumns.RelativePath} LIKE ? AND {MediaStore.IMediaColumns.GenerationModified} > ?");
             queryArguments.PutStringArray(
                 ContentResolver.QueryArgSqlSelectionArgs,
-                [$"{MediaStoreItemPath.DcimPrefix}%", generation.ToString(CultureInfo.InvariantCulture)]);
+                [pathPattern, generation.ToString(CultureInfo.InvariantCulture)]);
         }
         else
         {
             queryArguments.PutString(ContentResolver.QueryArgSqlSelection, $"{MediaStore.IMediaColumns.RelativePath} LIKE ?");
-            queryArguments.PutStringArray(ContentResolver.QueryArgSqlSelectionArgs, [$"{MediaStoreItemPath.DcimPrefix}%"]);
+            queryArguments.PutStringArray(ContentResolver.QueryArgSqlSelectionArgs, [pathPattern]);
         }
 
         queryArguments.PutString(ContentResolver.QueryArgSqlSortOrder, $"{IBaseColumns.Id} ASC");

@@ -35,6 +35,7 @@ public sealed partial class SettingsPage : ContentPage
         VideoPrefixEntry.Text = settings.VideoPrefix;
         AccessTierEntry.Text = settings.AccessTier;
         AutomaticBackupSwitch.IsToggled = settings.AutomaticBackup;
+        SubfoldersIncludedSwitch.IsToggled = settings.SubfoldersIncluded;
     }
 
     private async void OnSaveClicked(object? sender, EventArgs e)
@@ -48,7 +49,8 @@ public sealed partial class SettingsPage : ContentPage
             PhotoPrefixEntry.Text ?? string.Empty,
             VideoPrefixEntry.Text ?? string.Empty,
             AccessTierEntry.Text ?? string.Empty,
-            automaticBackup));
+            automaticBackup,
+            SubfoldersIncludedSwitch.IsToggled));
         if (errors.Count > 0)
         {
             ShowStatus(string.Join(" ", errors));
