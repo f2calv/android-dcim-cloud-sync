@@ -105,7 +105,8 @@ sequenceDiagram
   backup service, hash verification and outcomes run on Android as on Windows.
 - Negative: overwrite protection is client-enforced, not Azure-enforced, because RBAC `write` covers
   both creating and replacing. A compromised device token could overwrite blobs until revoked; it still
-  cannot delete. Enable blob versioning or soft delete on the account if that risk matters.
+  cannot delete. Enable blob versioning or soft delete on the account if that risk matters; the owner's
+  deployment enables 30-day blob and container soft delete.
 - Negative: the owner maintains an app registration and a custom role definition, and must sign in
   again when the refresh token expires or is revoked. The owner manages them as infrastructure as code
   in a private repository, applied by an operator account because they need directory permissions.
