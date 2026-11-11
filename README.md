@@ -155,8 +155,9 @@ phone. To sideload onto a phone without enabling debugging, build a Release APK:
 ./build-apk.ps1 -Install -Device emulator-5554  # also installs it over an earlier build on an emulator
 ```
 
-On Linux or macOS, run `./build-apk.sh` with the same arguments. The
-[script](.scripts/Build-Apk.ps1):
+On Linux or macOS, run `./build-apk.sh` with the same arguments. The shim runs the
+[shared script](https://github.com/f2calv/.github/blob/main/.github/skills/dotnet-maui/scripts/Build-Apk.ps1)
+from `~/.copilot/skills/dotnet-maui` or a clone of that repository beside this one. The script:
 
 - cleans and publishes a trimmed Release build;
 - signs it with the sideload keystore when available, otherwise with this machine's Android debug key;
@@ -167,13 +168,13 @@ Android installs an update only when it is signed with the same key, and keeps t
 settings when it does. The sideload keystore lets local and CI builds update each other. The script
 reads it from, in order:
 
-1. `ANDROID_SIGNING_KEYSTORE_BASE64` and `ANDROID_SIGNING_KEYSTORE_PASSWORD`, which CI sets from the
-   `ANDROID_SIDELOAD_KEYSTORE_*` repository secrets;
+1. `ANDROID_SIGNING_KEYSTORE_BASE64` and `ANDROID_SIGNING_KEYSTORE_PASSWORD`;
 2. the Azure Key Vault named by `ANDROID_SIGNING_KEY_VAULT`, through the signed-in Azure CLI, from the
    secrets `dcim-android-sideload-keystore` (base64 PKCS12) and `dcim-android-sideload-keystore-password`;
 3. otherwise this machine's debug key.
 
-`ANDROID_SIGNING_KEY_ALIAS` overrides the alias, `dcim-sideload`. The signing values reach MSBuild only as
+The key alias is `dcim-sideload`. CI builds the same APK with the shared Android workflow from the
+`ANDROID_SIDELOAD_KEYSTORE_*` repository secrets and the same version-code scheme. The signing values reach MSBuild only as
 environment properties during the build, and the temporary keystore file is deleted afterwards.
 Switching an installed app between keys requires uninstalling it first, which deletes its data. The
 APK is for your own devices only: it is not release-signed. It contains no settings or credentials.
@@ -182,12 +183,7 @@ To download a CI build instead, open a run's **Artifacts** section and take `and
 
 Copy the APK to the phone, for example through a synced cloud folder or a USB file transfer, and open
 it with **Files**, allowing that app to install unknown apps. Test a Release build on the emulator
-before sideloading, because trimming can remove code that only runs on a device. The
-[Pester tests](.scripts/tests/Build-Apk.Tests.ps1) cover the script without building:
-
-```powershell
-Invoke-Pester ./.scripts/tests
-```
+before sideloading, because trimming can remove code that only runs on a device.
 
 ### Back Up from Android
 

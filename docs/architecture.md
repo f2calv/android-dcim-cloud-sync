@@ -74,8 +74,7 @@ flowchart TD
 ```
 
 The [CI workflow](../.github/workflows/ci.yml) delegates platform builds to the released shared
-workflows, except the sideload APK, which runs the repository's `build-apk.ps1` with the sideload keystore
-from repository secrets. It is skipped for Dependabot and fork pull requests, which receive no secrets.
+workflows. The sideload APK is signed with the sideload keystore from repository secrets. It is skipped for Dependabot and fork pull requests, which receive no secrets.
 Windows and APK artifacts have a 14-day retention period and are not attached to releases. No device
 deployment, release signing or Play publication is enabled. Both test projects run in the shared
 .NET build workflow; only the Azure test job provisions disposable Azurite storage. The release
