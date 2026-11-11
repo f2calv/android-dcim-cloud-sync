@@ -8,7 +8,7 @@ applyTo: '**/*.csproj,**/*.slnx,**/Directory.Build.props,**/Directory.Packages.p
 ## Initial Scaffolding
 
 - Let Visual Studio 2026 create the initial .NET MAUI solution and application project.
-- Use the modern `.slnx` solution format, named after the repository (`android-dcim-cloud-sync.slnx`), and place all projects under `src/`.
+- Use `android-dcim-cloud-sync.Debug.slnx` for local development and `android-dcim-cloud-sync.Release.slnx` for published-package validation. Keep repository-owned projects under `src/` and sibling dependency projects in the Debug solution only.
 - Target `net10.0-android` for the product. Add `net10.0-windows10.0.19041.0` only when `IsOSPlatform('windows')`, as an unpackaged development target. Do not add other platform target frameworks unless requested.
 - Keep the MAUI application non-packable. NuGet packaging metadata belongs only in a future reusable library that is intentionally published.
 

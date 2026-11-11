@@ -24,7 +24,7 @@ a MediaStore change checkpoint; there is no per-item queue or local backup state
 - Keep MSAL inside `Platforms/Android`; core and the Azure provider see only `IAccessTokenProvider`.
   Never enable the authentication broker, and never package tenant, client, account or container values.
 
-- Build from `android-dcim-cloud-sync.slnx`, named after the repository; central SDK, build and package policy lives in the root files.
+- Build locally from `android-dcim-cloud-sync.Debug.slnx`, which includes the sibling dependency projects; use `android-dcim-cloud-sync.Release.slnx` for published-package validation. Central SDK, build and package policy lives in the root files.
 - Keep `net10.0-android`, minimum API 33 and application ID
   `io.github.f2calv.androiddcimcloudsync`.
 - Keep the Windows target development-only: add it only when building on Windows and keep it

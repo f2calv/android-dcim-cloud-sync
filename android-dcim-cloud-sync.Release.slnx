@@ -1,0 +1,12 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Release" />
+  </Configurations>
+  <Folder Name="/android-dcim-cloud-sync/">
+    <Project Path="src/DcimCloudSync.Core.Tests/DcimCloudSync.Core.Tests.csproj" />
+    <Project Path="src/DcimCloudSync.Core/DcimCloudSync.Core.csproj" />
+    <Project Path="src/DcimCloudSync.Storage.Azure.Tests/DcimCloudSync.Storage.Azure.Tests.csproj" />
+    <Project Path="src/DcimCloudSync.Storage.Azure/DcimCloudSync.Storage.Azure.csproj" />
+    <Project Path="src/DcimCloudSync/DcimCloudSync.csproj" />
+  </Folder>
+</Solution>

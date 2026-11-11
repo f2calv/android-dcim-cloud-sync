@@ -77,18 +77,20 @@ dotnet workload install maui-android
 Visual Studio 2026 with MAUI tooling is the interactive development path. Debug builds reference the
 `CasCap.Api.Azure.Storage` source in a sibling `CasCap.Api.Azure` checkout, which in turn expects a
 sibling `CasCap.Common` checkout; clone both next to this repository. Build every project from the
-repository root:
+repository root. Open `android-dcim-cloud-sync.Debug.slnx` in Visual Studio for local development;
+it includes the required Azure Storage and Common dependency projects:
 
 ```powershell
-dotnet build .\android-dcim-cloud-sync.slnx --configuration Debug
+dotnet build .\android-dcim-cloud-sync.Debug.slnx --configuration Debug
 ```
 
 On Windows this builds both the Android and Windows targets; on other operating systems only the
 Android target is built. Release builds use the published `CasCap.Api.Azure.Storage` **2.0.0**,
 including create-only uploads and metadata lookup; no sibling checkout is required for Release.
+The Release solution contains only this repository's projects and exposes only the Release configuration.
 
 ```powershell
-dotnet build .\android-dcim-cloud-sync.slnx --configuration Release
+dotnet build .\android-dcim-cloud-sync.Release.slnx --configuration Release
 ```
 
 ### Continuous Integration

@@ -1,0 +1,17 @@
+<Solution>
+  <Folder Name="/CasCap.Common/">
+    <Project Path="../CasCap.Common/src/CasCap.Common.Extensions/CasCap.Common.Extensions.csproj" />
+    <Project Path="../CasCap.Common/src/CasCap.Common.Logging/CasCap.Common.Logging.csproj" />
+    <Project Path="../CasCap.Common/src/CasCap.Common.Serialization.Json/CasCap.Common.Serialization.Json.csproj" />
+  </Folder>
+  <Folder Name="/CasCap.Api.Azure/">
+    <Project Path="../CasCap.Api.Azure/src/CasCap.Api.Azure.Storage/CasCap.Api.Azure.Storage.csproj" />
+  </Folder>
+  <Folder Name="/android-dcim-cloud-sync/">
+    <Project Path="src/DcimCloudSync.Core.Tests/DcimCloudSync.Core.Tests.csproj" />
+    <Project Path="src/DcimCloudSync.Core/DcimCloudSync.Core.csproj" />
+    <Project Path="src/DcimCloudSync.Storage.Azure.Tests/DcimCloudSync.Storage.Azure.Tests.csproj" />
+    <Project Path="src/DcimCloudSync.Storage.Azure/DcimCloudSync.Storage.Azure.csproj" />
+    <Project Path="src/DcimCloudSync/DcimCloudSync.csproj" />
+  </Folder>
+</Solution>
