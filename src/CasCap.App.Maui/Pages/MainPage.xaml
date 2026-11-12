@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CasCap.Pages.MainPage"
+             Title="Status">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="24,32"
+            Spacing="20">
+            <Label
+                Style="{StaticResource PageTitleLabelStyle}"
+                Text="Android DCIM Cloud Sync"
+                SemanticProperties.HeadingLevel="Level1" />
+            <Label
+                Style="{StaticResource IntroLabelStyle}"
+                Text="A minimal .NET MAUI shell for learning and local Android development." />
+            <Label
+                Margin="0,12,0,0"
+                Style="{StaticResource SectionTitleLabelStyle}"
+                Text="Current status"
+                SemanticProperties.HeadingLevel="Level2" />
+            <Label
+                Text="Backup is a development preview. On Android, new photos and videos are backed up in the background on Wi-Fi while automatic backup is on in Settings. No files are deleted."
+                SemanticProperties.Description="Current status. Backup is a development preview." />
+            <VerticalStackLayout
+                x:Name="MediaSection"
+                IsVisible="False"
+                Spacing="12">
+                <Label
+                    Margin="0,12,0,0"
+                    Style="{StaticResource SectionTitleLabelStyle}"
+                    Text="Media"
+                    SemanticProperties.HeadingLevel="Level2" />
+                <Label
+                    Text="Scan reads and hashes every DCIM photo and video, or on Windows the development media folder. Back up copies each one to the configured destination once and never overwrites an existing backup." />
+                <HorizontalStackLayout Spacing="12">
+                    <Button
+                        x:Name="ScanButton"
+                        Text="Scan media"
+                        Clicked="OnScanClicked"
+                        SemanticProperties.Hint="Reads and hashes every DCIM photo and video" />
+                    <Button
+                        x:Name="BackUpButton"
+                        Text="Back up"
+                        IsVisible="False"
+                        Clicked="OnBackUpClicked"
+                        SemanticProperties.Hint="Copies every photo and video that has no backup to the configured destination" />
+                    <Button
+                        x:Name="CancelButton"
+                        Text="Cancel"
+                        IsEnabled="False"
+                        Clicked="OnCancelClicked"
+                        SemanticProperties.Hint="Cancels the current scan or backup" />
+                </HorizontalStackLayout>
+                <ActivityIndicator
+                    x:Name="ActivityIndicator"
+                    IsRunning="False"
+                    IsVisible="False"
+                    SemanticProperties.Description="Operation in progress" />
+                <ProgressBar
+                    x:Name="ItemProgressBar"
+                    IsVisible="False"
+                    SemanticProperties.Description="Progress of the current file" />
+                <Label x:Name="StatusLabel" />
+            </VerticalStackLayout>
+            <Label
+                Margin="0,12,0,0"
+                Style="{StaticResource SectionTitleLabelStyle}"
+                Text="Learning surface"
+                SemanticProperties.HeadingLevel="Level2" />
+            <Label
+                Text="Use this page to explore XAML layout, centralized theme-aware styles, and debugging on Windows or Android before product features are added." />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

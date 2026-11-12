@@ -43,11 +43,11 @@ Deletion is not implemented, and background backup exists only on Android.
 
 | Project | Purpose |
 | --- | --- |
-| [DcimCloudSync](src/DcimCloudSync/README.md) | MAUI application for Android, plus the Windows development target |
-| [DcimCloudSync.Core](src/DcimCloudSync.Core/README.md) | Platform-neutral media and backup contracts, folder media source, scan and backup services |
-| [DcimCloudSync.Storage.Azure](src/DcimCloudSync.Storage.Azure/README.md) | Azure Blob Storage backup destination built on `CasCap.Api.Azure.Storage` |
-| [DcimCloudSync.Core.Tests](src/DcimCloudSync.Core.Tests/README.md) | Unit tests for the core library |
-| [DcimCloudSync.Storage.Azure.Tests](src/DcimCloudSync.Storage.Azure.Tests/README.md) | Naming unit tests and Azurite integration tests for the Azure destination |
+| [CasCap.App.Maui](src/CasCap.App.Maui/README.md) | MAUI application for Android, plus the Windows development target |
+| [CasCap.App](src/CasCap.App/README.md) | Platform-neutral media and backup contracts, folder media source, scan and backup services |
+| [CasCap.App.Azure](src/CasCap.App.Azure/README.md) | Azure Blob Storage backup destination built on `CasCap.Api.Azure.Storage` |
+| [CasCap.App.Tests](src/CasCap.App.Tests/README.md) | Unit tests for the core library |
+| [CasCap.App.Azure.Tests](src/CasCap.App.Azure.Tests/README.md) | Naming unit tests and Azurite integration tests for the Azure destination |
 
 ## System Context
 
@@ -77,25 +77,27 @@ dotnet workload install maui-android
 Visual Studio 2026 with MAUI tooling is the interactive development path. Debug builds reference the
 `CasCap.Api.Azure.Storage` source in a sibling `CasCap.Api.Azure` checkout, which in turn expects a
 sibling `CasCap.Common` checkout; clone both next to this repository. Build every project from the
-repository root:
+repository root. Open `android-dcim-cloud-sync.Debug.slnx` in Visual Studio for local development;
+it includes the required Azure Storage and Common dependency projects:
 
 ```powershell
-dotnet build .\android-dcim-cloud-sync.slnx --configuration Debug
+dotnet build .\android-dcim-cloud-sync.Debug.slnx --configuration Debug
 ```
 
 On Windows this builds both the Android and Windows targets; on other operating systems only the
 Android target is built. Release builds use the published `CasCap.Api.Azure.Storage` **2.0.0**,
 including create-only uploads and metadata lookup; no sibling checkout is required for Release.
+The Release solution contains only this repository's projects and exposes only the Release configuration.
 
 ```powershell
-dotnet build .\android-dcim-cloud-sync.slnx --configuration Release
+dotnet build .\android-dcim-cloud-sync.Release.slnx --configuration Release
 ```
 
 ### Continuous Integration
 
 [CI](.github/workflows/ci.yml) produces unsigned Android validation bundles and a self-contained,
-unpackaged Windows development artifact named `DcimCloudSync-windows-x64-<version>`, kept for
-14 days. Download it from the run's **Artifacts** section, extract it and start `DcimCloudSync.exe`;
+unpackaged Windows development artifact named `CasCap.App.Maui-windows-x64-<version>`, kept for
+14 days. Download it from the run's **Artifacts** section, extract it and start `CasCap.App.Maui.exe`;
 no .NET or Windows App SDK install is needed. On `main` and same-repository pull requests, CI also
 builds `android-apk-<version>`, a sideload APK [signed with the sideload keystore](#build-an-apk-for-a-phone),
 kept for 14 days. These are test artifacts, not release-signed or distributed product releases. See
@@ -126,7 +128,7 @@ Debug services on Windows first; switch to Android only for a deliberate device 
    [Environment]::SetEnvironmentVariable('DcimCloudSync__AzureBlobBackup__ContainerCreationEnabled', 'true', 'User')
    ```
 
-   The [Azure destination README](src/DcimCloudSync.Storage.Azure/README.md#configuration) lists every
+   The [Azure destination README](src/CasCap.App.Azure/README.md#configuration) lists every
    setting. Never point a development build at a production account.
 4. Restart Visual Studio so the app inherits the variables. Select the `net10.0-windows10.0.19041.0`
    framework and the **Windows Machine** target, then start debugging. The app runs unpackaged.
@@ -137,7 +139,7 @@ Debug services on Windows first; switch to Android only for a deliberate device 
 
 Select a compatible Android emulator or a paired device in Visual Studio and deploy interactively, or
 from the command line with
-`dotnet build .\src\DcimCloudSync\DcimCloudSync.csproj -t:Run -f net10.0-android`.
+`dotnet build .\src\CasCap.App.Maui\CasCap.App.Maui.csproj -t:Run -f net10.0-android`.
 An Android emulator avoids enabling developer options on a managed phone. On an emulator, add
 synthetic photos to DCIM by dragging files onto the emulator window or with
 `adb push <file> /sdcard/DCIM/Camera/`, then rescan them with
@@ -155,8 +157,9 @@ phone. To sideload onto a phone without enabling debugging, build a Release APK:
 ./build-apk.ps1 -Install -Device emulator-5554  # also installs it over an earlier build on an emulator
 ```
 
-On Linux or macOS, run `./build-apk.sh` with the same arguments. The
-[script](.scripts/Build-Apk.ps1):
+On Linux or macOS, run `./build-apk.sh` with the same arguments. The shim runs the
+[shared script](https://github.com/f2calv/.github/blob/main/.github/skills/dotnet-maui/scripts/Build-Apk.ps1)
+from `~/.copilot/skills/dotnet-maui` or a clone of that repository beside this one. The script:
 
 - cleans and publishes a trimmed Release build;
 - signs it with the sideload keystore when available, otherwise with this machine's Android debug key;
@@ -167,13 +170,13 @@ Android installs an update only when it is signed with the same key, and keeps t
 settings when it does. The sideload keystore lets local and CI builds update each other. The script
 reads it from, in order:
 
-1. `ANDROID_SIGNING_KEYSTORE_BASE64` and `ANDROID_SIGNING_KEYSTORE_PASSWORD`, which CI sets from the
-   `ANDROID_SIDELOAD_KEYSTORE_*` repository secrets;
+1. `ANDROID_SIGNING_KEYSTORE_BASE64` and `ANDROID_SIGNING_KEYSTORE_PASSWORD`;
 2. the Azure Key Vault named by `ANDROID_SIGNING_KEY_VAULT`, through the signed-in Azure CLI, from the
    secrets `dcim-android-sideload-keystore` (base64 PKCS12) and `dcim-android-sideload-keystore-password`;
 3. otherwise this machine's debug key.
 
-`ANDROID_SIGNING_KEY_ALIAS` overrides the alias, `dcim-sideload`. The signing values reach MSBuild only as
+The key alias is `dcim-sideload`. CI builds the same APK with the shared Android workflow from the
+`ANDROID_SIDELOAD_KEYSTORE_*` repository secrets and the same version-code scheme. The signing values reach MSBuild only as
 environment properties during the build, and the temporary keystore file is deleted afterwards.
 Switching an installed app between keys requires uninstalling it first, which deletes its data. The
 APK is for your own devices only: it is not release-signed. It contains no settings or credentials.
@@ -182,12 +185,7 @@ To download a CI build instead, open a run's **Artifacts** section and take `and
 
 Copy the APK to the phone, for example through a synced cloud folder or a USB file transfer, and open
 it with **Files**, allowing that app to install unknown apps. Test a Release build on the emulator
-before sideloading, because trimming can remove code that only runs on a device. The
-[Pester tests](.scripts/tests/Build-Apk.Tests.ps1) cover the script without building:
-
-```powershell
-Invoke-Pester ./.scripts/tests
-```
+before sideloading, because trimming can remove code that only runs on a device.
 
 ### Back Up from Android
 
@@ -221,8 +219,8 @@ the app if a background run cannot finish it.
 Unit tests need only the local machine: no device, Android SDK, network or cloud resources.
 
 ```powershell
-dotnet test --project .\src\DcimCloudSync.Core.Tests\DcimCloudSync.Core.Tests.csproj
-dotnet test --project .\src\DcimCloudSync.Storage.Azure.Tests\DcimCloudSync.Storage.Azure.Tests.csproj --filter-not-trait Category=Integration
+dotnet test --project .\src\CasCap.App.Tests\CasCap.App.Tests.csproj
+dotnet test --project .\src\CasCap.App.Azure.Tests\CasCap.App.Azure.Tests.csproj --filter-not-trait Category=Integration
 ```
 
 Integration tests upload to Azurite in disposable per-test containers and skip when it is not
@@ -230,7 +228,7 @@ running. Start Azurite first, then omit the filter:
 
 ```powershell
 docker compose up -d --wait azurite
-dotnet test --project .\src\DcimCloudSync.Storage.Azure.Tests\DcimCloudSync.Storage.Azure.Tests.csproj
+dotnet test --project .\src\CasCap.App.Azure.Tests\CasCap.App.Azure.Tests.csproj
 ```
 
 There are no UI automation tests; the page is validated interactively.
@@ -244,7 +242,7 @@ the Microsoft sign-in library's app-private cache, it stores a MediaStore change
 (volume versions and generations, nothing about individual items) and the **Log** tab's 25 most recent
 events, which name files, in an app-private file. Notifications show counts and sizes,
 never file names. No other product data leaves the device. Its
-[Android manifest](src/DcimCloudSync/Platforms/Android/AndroidManifest.xml) declares:
+[Android manifest](src/CasCap.App.Maui/Platforms/Android/AndroidManifest.xml) declares:
 
 | Permission | Scope in this checkout |
 | --- | --- |

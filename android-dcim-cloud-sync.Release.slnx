@@ -1,0 +1,12 @@
+<Solution>
+  <Configurations>
+    <BuildType Name="Release" />
+  </Configurations>
+  <Folder Name="/android-dcim-cloud-sync/">
+    <Project Path="src/CasCap.App.Tests/CasCap.App.Tests.csproj" />
+    <Project Path="src/CasCap.App/CasCap.App.csproj" />
+    <Project Path="src/CasCap.App.Azure.Tests/CasCap.App.Azure.Tests.csproj" />
+    <Project Path="src/CasCap.App.Azure/CasCap.App.Azure.csproj" />
+    <Project Path="src/CasCap.App.Maui/CasCap.App.Maui.csproj" />
+  </Folder>
+</Solution>

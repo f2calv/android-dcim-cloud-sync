@@ -1,5 +1,5 @@
 # Default: docker compose up -d --wait starts Azurite, the local Azure Storage emulator used to debug
-# uploads from the Windows target and to run the DcimCloudSync.Storage.Azure.Tests integration tests.
+# uploads from the Windows target and to run the CasCap.App.Azure.Tests integration tests.
 # There are no profiles. Endpoint: Blob http://127.0.0.1:10000/devstoreaccount1.
 # Emulator state is disposable and kept outside the working tree in a named volume.
 services:

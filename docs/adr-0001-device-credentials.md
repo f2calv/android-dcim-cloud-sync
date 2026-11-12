@@ -12,11 +12,11 @@ configuration are out of scope.
 ## Context and Problem
 
 The Android client can discover DCIM media through
-[`MediaStoreMediaSource`](../src/DcimCloudSync/Platforms/Android/Services/MediaStoreMediaSource.cs), but
-it cannot back up: [`AzureBlobBackupDestination`](../src/DcimCloudSync.Storage.Azure/Services/AzureBlobBackupDestination.cs)
+[`MediaStoreMediaSource`](../src/CasCap.App.Maui/Platforms/Android/Services/MediaStoreMediaSource.cs), but
+it cannot back up: [`AzureBlobBackupDestination`](../src/CasCap.App.Azure/Services/AzureBlobBackupDestination.cs)
 is referenced only by the Windows target, and it authenticates with a connection string from
-[`AzureBlobBackupConfig`](../src/DcimCloudSync.Storage.Azure/Models/AzureBlobBackupConfig.cs). The
-[project file](../src/DcimCloudSync/DcimCloudSync.csproj) carries a TODO deferring the Android reference
+[`AzureBlobBackupConfig`](../src/CasCap.App.Azure/Models/AzureBlobBackupConfig.cs). The
+[project file](../src/CasCap.App.Maui/CasCap.App.Maui.csproj) carries a TODO deferring the Android reference
 until this decision exists.
 
 A connection string embeds the account key. The [security policy](../SECURITY.md#credential-handling)
@@ -157,7 +157,7 @@ Progress on 2026-11-07, against a dedicated test container on the emulator:
 Delivery is one branch: the credential adapter and destination constructor, the settings page,
 Android registration of the backup service, then validation V1-V5 on the emulator. Background backup
 followed on the same branch: background runs only acquire tokens silently and notify the user when
-sign-in is needed (see the [app README](../src/DcimCloudSync/README.md#background-backup)).
+sign-in is needed (see the [app README](../src/CasCap.App.Maui/README.md#background-backup)).
 
 A trimmed Release APK, built with the repository's
 [APK script](../README.md#build-an-apk-for-a-phone), was also validated on the emulator on 2026-11-07:
@@ -221,6 +221,6 @@ These items concern media discovery, scheduling and distribution, not device cre
 | [Put Blob](https://learn.microsoft.com/en-us/rest/api/storageservices/put-blob) and [Put Block List](https://learn.microsoft.com/en-us/rest/api/storageservices/put-block-list) | `add/action` creates new block blobs; `write` is needed to overwrite and for block uploads |
 | [MSAL.NET Android token cache accessor](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/blob/main/src/client/Microsoft.Identity.Client/Platforms/Android/AndroidTokenCacheAccessor.cs) | Tokens persist in app-private shared preferences |
 | [Authenticate users with MSAL.NET in .NET MAUI](https://learn.microsoft.com/en-us/dotnet/maui/data-cloud/authentication?view=net-maui-10.0) | MSAL.NET public-client sign-in on Android |
-| [`AzureBlobBackupDestination`](../src/DcimCloudSync.Storage.Azure/Services/AzureBlobBackupDestination.cs) | Current connection-string destination and create-only upload |
-| [`IBackupDestination`](../src/DcimCloudSync.Core/Abstractions/IBackupDestination.cs) | Provider-neutral contract the Android destination must keep |
+| [`AzureBlobBackupDestination`](../src/CasCap.App.Azure/Services/AzureBlobBackupDestination.cs) | Current connection-string destination and create-only upload |
+| [`IBackupDestination`](../src/CasCap.App/Abstractions/IBackupDestination.cs) | Provider-neutral contract the Android destination must keep |
 | [Security policy](../SECURITY.md#credential-handling) | Prohibits packaged long-lived credentials |

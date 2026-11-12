@@ -35,7 +35,7 @@ jobs:
     permissions:
       contents: read
     with:
-      project: src/DcimCloudSync/DcimCloudSync.csproj
+      project: src/CasCap.App.Maui/CasCap.App.Maui.csproj
       app-display-version: ${{ format('{0}.{1}.{2}', needs.versioning.outputs.major, needs.versioning.outputs.minor, needs.versioning.outputs.patch) }}
       app-version-code: ${{ github.run_number }}
 
@@ -46,7 +46,7 @@ jobs:
     permissions:
       contents: read
     with:
-      project: src/DcimCloudSync/DcimCloudSync.csproj
+      project: src/CasCap.App.Maui/CasCap.App.Maui.csproj
       app-display-version: ${{ format('{0}.{1}.{2}', needs.versioning.outputs.major, needs.versioning.outputs.minor, needs.versioning.outputs.patch) }}
       app-version-code: ${{ github.run_number }}
 
@@ -56,9 +56,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - project: src/DcimCloudSync.Core.Tests/DcimCloudSync.Core.Tests.csproj
+          - project: src/CasCap.App.Tests/CasCap.App.Tests.csproj
             storage: false
-          - project: src/DcimCloudSync.Storage.Azure.Tests/DcimCloudSync.Storage.Azure.Tests.csproj
+          - project: src/CasCap.App.Azure.Tests/CasCap.App.Azure.Tests.csproj
             storage: true
     uses: f2calv/gha-workflows/.github/workflows/app-build-dotnet.yml@v1
     permissions:
@@ -70,10 +70,7 @@ jobs:
       test-compose-services: ${{ matrix.storage && '["azurite"]' || '[]' }}
 
   #Sideload APK signed with the shared sideload keystore, uploaded as a short-lived artifact for manual installs.
-  #build-apk.ps1 is the same script used locally, so CI and local APKs share signing and version codes and update
-  #each other in place.
-  #TODO: Move this into the shared deploy-maui-android workflow (APK package format, sideload signing and artifact
-  #upload inputs) once it has built reliably across a few releases; it stays local while the approach is proven.
+  #Its clock-based version code matches build-apk.ps1, so CI and local APKs update each other in place.
   #TODO: Read the sideload keystore from Azure Key Vault through GitHub OIDC instead of repository secrets once this
   #repository has a federated Azure identity; build-apk.ps1 already reads Key Vault through ANDROID_SIGNING_KEY_VAULT.
   build-apk:
@@ -81,68 +78,24 @@ jobs:
     #Dependabot and fork pull requests receive no secrets, so they cannot sign; the build job still validates them.
     if: github.actor != 'dependabot[bot]'
       && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
-    runs-on: ubuntu-26.04
+    uses: f2calv/gha-workflows/.github/workflows/deploy-maui-android.yml@v1
     permissions:
       contents: read
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - uses: actions/setup-dotnet@v6
-        with:
-          global-json-file: global.json
-
-      #Pinned because newer runner images default to a JDK that .NET for Android does not support.
-      - uses: actions/setup-java@v6
-        with:
-          distribution: microsoft
-          java-version: '17'
-
-      - name: dotnet workload restore
-        run: dotnet workload restore src/DcimCloudSync/DcimCloudSync.csproj
-
-      - name: build-apk.ps1
-        shell: pwsh
-        env:
-          ANDROID_SIGNING_KEYSTORE_BASE64: ${{ secrets.ANDROID_SIDELOAD_KEYSTORE_BASE64 }}
-          ANDROID_SIGNING_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_SIDELOAD_KEYSTORE_PASSWORD }}
-        run: ./build-apk.ps1 -OutputDirectory "$env:RUNNER_TEMP/apk"
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: android-apk-${{ needs.versioning.outputs.version }}
-          path: ${{ runner.temp }}/apk/*.apk
-          if-no-files-found: error
-          retention-days: 14
-
-  #Pester tests for the repository scripts; they mock dotnet, git and adb, so no SDK or device is needed.
-  script-tests:
-    runs-on: ubuntu-26.04
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-      - name: Install-Module Pester -RequiredVersion 5.7.1
-        shell: pwsh
-        run: Install-Module Pester -Scope CurrentUser -RequiredVersion 5.7.1 -Force
-      - name: Invoke-Pester .scripts/tests
-        shell: pwsh
-        run: |
-          Set-StrictMode -Version 3.0
-          Import-Module Pester -RequiredVersion 5.7.1
-          $configuration = New-PesterConfiguration
-          $configuration.Run.Path = './.scripts/tests'
-          $configuration.Run.PassThru = $true
-          $configuration.Output.Verbosity = 'Detailed'
-          $result = Invoke-Pester -Configuration $configuration
-          if ($result.TotalCount -eq 0 -or $result.FailedCount -gt 0) { exit 1 }
+    with:
+      project: src/CasCap.App.Maui/CasCap.App.Maui.csproj
+      package-format: apk
+      sign: true
+      version-code-from-clock: true
+      app-display-version: ${{ format('{0}.{1}.{2}', needs.versioning.outputs.major, needs.versioning.outputs.minor, needs.versioning.outputs.patch) }}
+      artifact-name: android-apk-${{ needs.versioning.outputs.version }}
+    secrets:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_SIDELOAD_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_SIDELOAD_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_SIDELOAD_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: dcim-sideload
 
   release:
-    needs: [lint, versioning, build, build-windows, build-apk, tests, script-tests]
+    needs: [lint, versioning, build, build-windows, build-apk, tests]
     if: needs.versioning.outputs.release-exists == 'false'
       && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
     uses: f2calv/gha-workflows/.github/workflows/gha-release-versioning.yml@v1

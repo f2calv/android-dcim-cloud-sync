@@ -1,0 +1,10 @@
+global using Azure;
+global using Azure.Storage.Blobs;
+global using Azure.Storage.Blobs.Models;
+global using CasCap.Messages;
+global using CasCap.Services;
+global using CasCap.Abstractions;
+global using CasCap.Exceptions;
+global using CasCap.Models;
+global using Microsoft.Extensions.Options;
+global using System.Globalization;

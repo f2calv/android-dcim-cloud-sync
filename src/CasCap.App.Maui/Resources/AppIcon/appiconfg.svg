@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- A cloud with an upload arrow: photo and video backup. Kept inside the adaptive-icon safe zone. -->
+<svg width="456" height="456" viewBox="0 0 456 456" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="186" cy="246" r="54" fill="#FFFFFF" />
+    <circle cx="252" cy="212" r="72" fill="#FFFFFF" />
+    <circle cx="314" cy="254" r="46" fill="#FFFFFF" />
+    <rect x="132" y="250" width="228" height="50" rx="25" fill="#FFFFFF" />
+    <rect x="236" y="226" width="24" height="60" rx="4" fill="#1E3A8A" />
+    <polygon points="206,236 248,186 290,236" fill="#1E3A8A" />
+</svg>

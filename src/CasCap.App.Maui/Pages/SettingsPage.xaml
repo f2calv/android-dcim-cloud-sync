@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CasCap.Pages.SettingsPage"
+             Title="Settings">
+
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="24,32"
+            Spacing="12">
+            <Label
+                Style="{StaticResource PageTitleLabelStyle}"
+                Text="Backup settings"
+                SemanticProperties.HeadingLevel="Level1" />
+            <Label
+                Text="Backups sign in with your Microsoft account and upload to your own Azure storage container. These values are not secrets and stay on this device." />
+
+            <Label Text="Directory (tenant) ID" />
+            <Entry
+                x:Name="TenantIdEntry"
+                Placeholder="00000000-0000-0000-0000-000000000000"
+                Keyboard="Text"
+                SemanticProperties.Description="Directory (tenant) ID" />
+            <Label Text="Application (client) ID" />
+            <Entry
+                x:Name="ClientIdEntry"
+                Placeholder="00000000-0000-0000-0000-000000000000"
+                Keyboard="Text"
+                SemanticProperties.Description="Application (client) ID" />
+            <Label Text="Blob service URL" />
+            <Entry
+                x:Name="BlobServiceUriEntry"
+                Placeholder="https://account.blob.core.windows.net/"
+                Keyboard="Url"
+                SemanticProperties.Description="Blob service URL" />
+            <Label Text="Container" />
+            <Entry
+                x:Name="ContainerNameEntry"
+                Keyboard="Text"
+                SemanticProperties.Description="Container name" />
+            <Label Text="Photo prefix" />
+            <Entry
+                x:Name="PhotoPrefixEntry"
+                Keyboard="Text"
+                SemanticProperties.Description="Blob name prefix for photos" />
+            <Label Text="Video prefix" />
+            <Entry
+                x:Name="VideoPrefixEntry"
+                Keyboard="Text"
+                SemanticProperties.Description="Blob name prefix for videos" />
+            <Label Text="Access tier (Hot, Cool, Cold, Archive, or empty for the account default)" />
+            <Entry
+                x:Name="AccessTierEntry"
+                Keyboard="Text"
+                SemanticProperties.Description="Access tier" />
+
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <Label
+                    Text="Back up new photos and videos automatically on Wi-Fi, with a notification when something is backed up"
+                    VerticalOptions="Center" />
+                <Switch
+                    x:Name="AutomaticBackupSwitch"
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    SemanticProperties.Description="Back up new photos and videos automatically on Wi-Fi" />
+            </Grid>
+
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <Label
+                    Text="Also back up other DCIM folders, such as ones that other apps create (only DCIM/Camera otherwise)"
+                    VerticalOptions="Center" />
+                <Switch
+                    x:Name="AllFoldersIncludedSwitch"
+                    Grid.Column="1"
+                    VerticalOptions="Center"
+                    SemanticProperties.Description="Also back up other DCIM folders" />
+            </Grid>
+
+            <Label Text="Already-backed-up check" />
+            <Picker
+                x:Name="CheckModePicker"
+                SemanticProperties.Description="How backups decide that a file is already backed up">
+                <Picker.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Quick: compare name, size and modified time</x:String>
+                        <x:String>Full: compare the SHA-256 of every file (reads every file)</x:String>
+                    </x:Array>
+                </Picker.ItemsSource>
+            </Picker>
+
+            <HorizontalStackLayout Spacing="12">
+                <Button
+                    Text="Save"
+                    Clicked="OnSaveClicked"
+                    SemanticProperties.Hint="Saves the backup settings" />
+                <Button
+                    Text="Sign out"
+                    Clicked="OnSignOutClicked"
+                    SemanticProperties.Hint="Removes the signed-in account from this device" />
+            </HorizontalStackLayout>
+            <Label x:Name="SettingsStatusLabel" />
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
