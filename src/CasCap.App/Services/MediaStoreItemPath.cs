@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Maps Android MediaStore rows to the source identities and DCIM-relative paths used by <see cref="MediaItem"/>.

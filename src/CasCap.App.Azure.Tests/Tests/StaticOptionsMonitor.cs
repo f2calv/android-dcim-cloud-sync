@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Tests;
+namespace CasCap.Tests;
 
 /// <summary>
 /// Serves a fixed options value through <see cref="IOptionsMonitor{TOptions}"/> without change notifications.

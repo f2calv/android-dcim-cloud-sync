@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Passes reads through to an inner stream and reports the running byte count, at most once per reporting interval and

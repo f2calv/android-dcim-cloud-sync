@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Tests.Unit;
+namespace CasCap.Tests.Unit;
 
 /// <summary>
 /// Tests the MediaStore row mapping in <see cref="MediaStoreItemPath"/>.

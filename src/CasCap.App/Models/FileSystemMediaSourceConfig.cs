@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace DcimCloudSync.Models;
+namespace CasCap.Models;
 
 /// <summary>
 /// Configures the folder-backed media source used for development on Windows.

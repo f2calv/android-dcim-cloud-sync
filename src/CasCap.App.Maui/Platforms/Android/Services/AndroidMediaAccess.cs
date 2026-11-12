@@ -1,7 +1,7 @@
 using Android.Content.PM;
 using Microsoft.Maui.ApplicationModel;
 
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Requests Android visual-media and media-location permissions and classifies what the user granted.

@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Tests.Integration;
+namespace CasCap.Tests.Integration;
 
 /// <summary>
 /// Tests <see cref="AzureBlobBackupDestination"/> and <see cref="BackupService"/> against Azurite or a configured account.

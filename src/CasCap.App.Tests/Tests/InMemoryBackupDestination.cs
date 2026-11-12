@@ -1,6 +1,6 @@
-using DcimCloudSync.Abstractions;
+using CasCap.Abstractions;
 
-namespace DcimCloudSync.Tests;
+namespace CasCap.Tests;
 
 /// <summary>
 /// Keeps backups in memory so <see cref="BackupService"/> can be tested without a provider.

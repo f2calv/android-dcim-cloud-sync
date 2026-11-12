@@ -1,4 +1,4 @@
-# DcimCloudSync.Core
+# CasCap.App
 
 Platform-neutral contracts and services for Android DCIM Cloud Sync. The library has no MAUI,
 Android or Azure dependency, so it can be developed and tested on any workstation.
@@ -106,6 +106,6 @@ The library defines no configuration provider; the host binds the section.
 | `Microsoft.Extensions.Logging.Abstractions` | `10.0.14` | `ILogger` and source-generated log messages |
 | `Microsoft.Extensions.Options` | `10.0.14` | `IOptions` access to the media source configuration |
 
-The [Azure destination](../DcimCloudSync.Storage.Azure/README.md) implements `IBackupDestination`.
+The [Azure destination](../CasCap.App.Azure/README.md) implements `IBackupDestination`.
 
 The project has no project references and is not packable.

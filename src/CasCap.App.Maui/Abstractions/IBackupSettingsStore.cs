@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Abstractions;
+namespace CasCap.Abstractions;
 
 /// <summary>
 /// Loads and saves the backup settings entered on the device, and signs the user out.

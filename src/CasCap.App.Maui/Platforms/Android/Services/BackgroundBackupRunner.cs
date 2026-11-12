@@ -1,7 +1,7 @@
-using DcimCloudSync.Exceptions;
+using CasCap.Exceptions;
 using Microsoft.Extensions.Options;
 
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Runs one unattended backup: checks it is enabled and permitted, never prompts for sign-in, and posts a notification

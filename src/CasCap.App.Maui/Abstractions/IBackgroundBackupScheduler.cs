@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Abstractions;
+namespace CasCap.Abstractions;
 
 /// <summary>
 /// Schedules or cancels background backups that run without the app on screen.

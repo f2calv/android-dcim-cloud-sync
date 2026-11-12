@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Stores one block blob per media item in Azure Blob Storage, named by media-type prefix and relative path.

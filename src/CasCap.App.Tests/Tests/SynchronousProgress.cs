@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Tests;
+namespace CasCap.Tests;
 
 /// <summary>
 /// Reports progress synchronously, unlike <see cref="Progress{T}"/>, so tests can assert every report.

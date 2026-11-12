@@ -4,7 +4,7 @@ using Android.Content;
 using Android.Content.PM;
 using Microsoft.Maui.ApplicationModel;
 
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Posts background backup notifications: a short summary when new items were backed up, and a prompt when the user must act.

@@ -1,7 +1,7 @@
-# DcimCloudSync.Storage.Azure
+# CasCap.App.Azure
 
 Azure Blob Storage backup destination for Android DCIM Cloud Sync. It implements the core
-[`IBackupDestination`](../DcimCloudSync.Core/Abstractions/IBackupDestination.cs) contract on top of the
+[`IBackupDestination`](../CasCap.App/Abstractions/IBackupDestination.cs) contract on top of the
 example storage library, the public `CasCap.Api.Azure.Storage` package; other libraries could serve the
 same contract.
 
@@ -21,7 +21,7 @@ same contract.
   comparison.
 - **Streaming:** content is streamed to the SDK, never buffered whole in memory.
 - **Authentication:** a connection string, or a blob service URL with the signed-in user's token from the
-  core [`IAccessTokenProvider`](../DcimCloudSync.Core/Abstractions/IAccessTokenProvider.cs), adapted to the
+  core [`IAccessTokenProvider`](../CasCap.App/Abstractions/IAccessTokenProvider.cs), adapted to the
   SDK by [`AccessTokenProviderCredential`](Services/AccessTokenProviderCredential.cs). Azure types stay
   inside this project.
 - **Lazy setup:** construction reads no configuration and performs no network I/O. The client is
@@ -58,7 +58,7 @@ with short-lived tokens and a no-delete role as decided in
 
 | Reference | Configuration | Use |
 | --- | --- | --- |
-| [DcimCloudSync.Core](../DcimCloudSync.Core/README.md) | All | Backup contract, models and exception |
+| [CasCap.App](../CasCap.App/README.md) | All | Backup contract, models and exception |
 | `CasCap.Api.Azure.Storage` project in a sibling `CasCap.Api.Azure` checkout | Debug | Create-only uploads and metadata reads |
 | `CasCap.Api.Azure.Storage` 2.0.0 package | Release | Published create-only uploads and metadata reads |
 | `Microsoft.Extensions.Options` | All | `IOptionsMonitor` configuration access |

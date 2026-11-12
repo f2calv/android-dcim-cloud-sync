@@ -1,8 +1,8 @@
-﻿using Android.App;
+using Android.App;
 using Android.Runtime;
-using DcimCloudSync.Services;
+using CasCap.Services;
 
-namespace DcimCloudSync;
+namespace CasCap;
 
 /// <summary>
 /// Creates the MAUI host for the Android application process, whether the user or WorkManager started it.

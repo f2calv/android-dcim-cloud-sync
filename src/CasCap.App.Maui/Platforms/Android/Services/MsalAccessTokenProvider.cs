@@ -1,9 +1,9 @@
-using DcimCloudSync.Exceptions;
+using CasCap.Exceptions;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client;
 using Microsoft.Maui.ApplicationModel;
 
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Acquires Microsoft Entra tokens for the signed-in user with MSAL, silently when possible and interactively otherwise.

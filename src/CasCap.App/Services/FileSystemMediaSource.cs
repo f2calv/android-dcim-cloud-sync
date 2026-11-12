@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Options;
 using System.Collections.Frozen;
 
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Discovers photos and videos below a configured folder, standing in for Android MediaStore during development.

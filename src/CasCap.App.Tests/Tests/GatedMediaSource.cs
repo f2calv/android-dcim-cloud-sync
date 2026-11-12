@@ -1,6 +1,6 @@
-using DcimCloudSync.Abstractions;
+using CasCap.Abstractions;
 
-namespace DcimCloudSync.Tests;
+namespace CasCap.Tests;
 
 /// <summary>
 /// Holds every discovery open until <see cref="Open"/> is called, so a test can observe overlapping runs.

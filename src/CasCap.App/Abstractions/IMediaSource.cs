@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Abstractions;
+namespace CasCap.Abstractions;
 
 /// <summary>
 /// Discovers photos and videos and opens their content as read-only streams.

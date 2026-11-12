@@ -2,7 +2,7 @@ using Android.Content;
 using Android.Runtime;
 using AndroidX.Work;
 
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Runs one background backup for WorkManager, using the services of the MAUI host that the process started.

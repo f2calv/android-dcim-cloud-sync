@@ -1,6 +1,6 @@
-using DcimCloudSync.Abstractions;
+using CasCap.Abstractions;
 
-namespace DcimCloudSync.Tests;
+namespace CasCap.Tests;
 
 /// <summary>
 /// Serves one in-memory item whose content changes after the first open, simulating an edit between hashing and upload.

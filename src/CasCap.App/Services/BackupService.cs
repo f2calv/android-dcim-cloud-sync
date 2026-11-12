@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
 
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Copies every discovered media item to the backup destination once, without overwriting or deleting anything.

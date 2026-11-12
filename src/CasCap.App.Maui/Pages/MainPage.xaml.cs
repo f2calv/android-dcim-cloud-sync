@@ -1,11 +1,11 @@
-using DcimCloudSync.Exceptions;
-using DcimCloudSync.Services;
+using CasCap.Exceptions;
+using CasCap.Services;
 using Microsoft.Extensions.Options;
 using Microsoft.Maui.Accessibility;
 using Microsoft.Maui.ApplicationModel;
 using System.Globalization;
 
-namespace DcimCloudSync.Pages;
+namespace CasCap.Pages;
 
 /// <summary>
 /// Displays the application status and, where the platform registers them, media scan and backup actions.

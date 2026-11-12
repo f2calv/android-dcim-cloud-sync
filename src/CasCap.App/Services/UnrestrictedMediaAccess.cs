@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Reports full media access for sources without a permission model, such as a local folder.

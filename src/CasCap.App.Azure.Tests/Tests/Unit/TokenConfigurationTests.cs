@@ -1,7 +1,7 @@
 using Azure.Core;
 using System.ComponentModel.DataAnnotations;
 
-namespace DcimCloudSync.Tests.Unit;
+namespace CasCap.Tests.Unit;
 
 /// <summary>
 /// Tests token-based configuration of <see cref="AzureBlobBackupDestination"/>; no storage is contacted.

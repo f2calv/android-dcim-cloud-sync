@@ -1,14 +1,15 @@
-﻿using Android.App;
+using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Microsoft.Identity.Client;
 
-namespace DcimCloudSync;
+namespace CasCap;
 
 /// <summary>
 /// Hosts the MAUI application in the Android activity lifecycle.
 /// </summary>
 [Activity(
+    Name = "io.github.f2calv.androiddcimcloudsync.MainActivity",
     Theme = "@style/Maui.SplashTheme",
     MainLauncher = true,
     LaunchMode = LaunchMode.SingleTop,

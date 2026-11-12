@@ -2,7 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Maui.Storage;
 
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Keeps the most recent backup and scan events in a JSON file in app-private storage.
@@ -57,7 +57,7 @@ public sealed class FileBackupLog : IBackupLog
     public IReadOnlyList<BackupLogEntry> GetEntries()
     {
         lock (_lock)
-            return [.. Load()];
+            return Load().ToArray();
     }
 
     /// <inheritdoc/>

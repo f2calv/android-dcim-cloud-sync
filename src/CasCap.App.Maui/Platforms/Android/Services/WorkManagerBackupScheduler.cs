@@ -4,7 +4,7 @@ using AndroidX.Work;
 using Microsoft.Maui.ApplicationModel;
 using Java.Util.Concurrent;
 
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Schedules background backups with WorkManager: one run shortly after new photos or videos appear, and a periodic

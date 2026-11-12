@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Models;
+namespace CasCap.Models;
 
 /// <summary>
 /// Configures which DCIM folders the Android MediaStore media source reads.

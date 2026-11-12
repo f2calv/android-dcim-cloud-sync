@@ -1,6 +1,6 @@
-using DcimCloudSync.Abstractions;
+using CasCap.Abstractions;
 
-namespace DcimCloudSync.Tests;
+namespace CasCap.Tests;
 
 /// <summary>
 /// Keeps backup log entries in memory, newest first, without a size limit.

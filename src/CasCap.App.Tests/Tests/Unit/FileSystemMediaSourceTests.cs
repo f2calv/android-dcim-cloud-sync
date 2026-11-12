@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Tests.Unit;
+namespace CasCap.Tests.Unit;
 
 /// <summary>
 /// Tests discovery and opening in <see cref="FileSystemMediaSource"/>.

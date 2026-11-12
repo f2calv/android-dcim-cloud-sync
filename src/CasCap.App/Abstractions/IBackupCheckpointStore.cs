@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Abstractions;
+namespace CasCap.Abstractions;
 
 /// <summary>
 /// Persists the change token of the last backup run that read every changed item, so the next run can start from it.

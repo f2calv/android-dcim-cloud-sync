@@ -1,7 +1,7 @@
-using DcimCloudSync.Services;
+using CasCap.Services;
 using Microsoft.Extensions.Configuration;
 
-namespace DcimCloudSync;
+namespace CasCap;
 
 /// <summary>
 /// Configures and creates the MAUI application host.

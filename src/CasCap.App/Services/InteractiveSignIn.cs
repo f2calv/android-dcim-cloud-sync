@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Marks the current asynchronous flow as unattended, so token providers never prompt for sign-in within it.

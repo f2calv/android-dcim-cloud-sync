@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Reads every item from the media source once and summarizes sizes, duplicates and unreadable items.

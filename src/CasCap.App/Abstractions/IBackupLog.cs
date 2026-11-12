@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Abstractions;
+namespace CasCap.Abstractions;
 
 /// <summary>
 /// Keeps the most recent backup and scan events on the device, for the user to review.

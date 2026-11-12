@@ -1,6 +1,6 @@
-# DcimCloudSync.Storage.Azure.Tests
+# CasCap.App.Azure.Tests
 
-xUnit v3 tests for [DcimCloudSync.Storage.Azure](../DcimCloudSync.Storage.Azure/README.md), running on
+xUnit v3 tests for [CasCap.App.Azure](../CasCap.App.Azure/README.md), running on
 Microsoft.Testing.Platform.
 
 ## Tests
@@ -30,14 +30,14 @@ on `127.0.0.1:10000`. No test is skipped unconditionally.
 Unit tests only:
 
 ```powershell
-dotnet test --project .\src\DcimCloudSync.Storage.Azure.Tests\DcimCloudSync.Storage.Azure.Tests.csproj --filter-not-trait Category=Integration
+dotnet test --project .\src\CasCap.App.Azure.Tests\CasCap.App.Azure.Tests.csproj --filter-not-trait Category=Integration
 ```
 
 With the integration tests, after starting Azurite from the repository root:
 
 ```powershell
 docker compose up -d --wait azurite
-dotnet test --project .\src\DcimCloudSync.Storage.Azure.Tests\DcimCloudSync.Storage.Azure.Tests.csproj
+dotnet test --project .\src\CasCap.App.Azure.Tests\CasCap.App.Azure.Tests.csproj
 ```
 
 The connection string defaults to Azurite. Setting `DcimCloudSync__AzureBlobBackup__ConnectionString`
@@ -63,6 +63,6 @@ graph TD
 
 | Reference | Use |
 | --- | --- |
-| [DcimCloudSync.Storage.Azure](../DcimCloudSync.Storage.Azure/README.md) | System under test |
-| [DcimCloudSync.Core](../DcimCloudSync.Core/README.md) | Folder media source and backup service for the lifecycle test |
+| [CasCap.App.Azure](../CasCap.App.Azure/README.md) | System under test |
+| [CasCap.App](../CasCap.App/README.md) | Folder media source and backup service for the lifecycle test |
 | `xunit.v3` `4.0.2` | Test framework |

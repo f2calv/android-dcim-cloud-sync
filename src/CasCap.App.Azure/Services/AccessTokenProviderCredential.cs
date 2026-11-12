@@ -1,6 +1,6 @@
 using Azure.Core;
 
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Adapts a provider-neutral <see cref="IAccessTokenProvider"/> to the Azure SDK's <see cref="TokenCredential"/>.

@@ -31,24 +31,24 @@ connection string is configured.
 
 ```mermaid
 graph LR
-    App["DcimCloudSync"] --> Core["DcimCloudSync.Core"]
-    App --> Azure["DcimCloudSync.Storage.Azure"]
+    App["CasCap.App.Maui"] --> Core["CasCap.App"]
+    App --> Azure["CasCap.App.Azure"]
     App -->|Android only| Msal["Microsoft.Identity.Client"]
     App -->|Android only| Work["Xamarin.AndroidX.Work.Runtime"]
     Azure --> Core
     Azure -->|Release package; Debug sibling source| Library["CasCap.Api.Azure.Storage 2.0.0"]
-    CoreTests["DcimCloudSync.Core.Tests"] --> Core
-    AzureTests["DcimCloudSync.Storage.Azure.Tests"] --> Azure
+    CoreTests["CasCap.App.Tests"] --> Core
+    AzureTests["CasCap.App.Azure.Tests"] --> Azure
     AzureTests --> Core
 ```
 
-The [Azure provider project](../src/DcimCloudSync.Storage.Azure/DcimCloudSync.Storage.Azure.csproj)
+The [Azure provider project](../src/CasCap.App.Azure/CasCap.App.Azure.csproj)
 owns SDK integration. Provider-neutral contracts remain in the core library. None of these projects
 publishes a NuGet package.
 
 ## Backup Flow
 
-The [core README](../src/DcimCloudSync.Core/README.md#contracts-and-services) owns the scan and backup
+The [core README](../src/CasCap.App/README.md#contracts-and-services) owns the scan and backup
 flow diagrams. The upload stream verifies its SHA-256 at end-of-stream before the destination can
 commit. Existing blobs are never overwritten; matching, conflicting, unverified and changed content
 have distinct outcomes. A rerun checks the destination again rather than relying on a local queue;

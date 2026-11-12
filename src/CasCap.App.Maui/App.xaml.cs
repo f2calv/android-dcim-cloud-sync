@@ -1,4 +1,4 @@
-﻿namespace DcimCloudSync;
+namespace CasCap;
 
 /// <summary>
 /// Defines the application and creates its root window.

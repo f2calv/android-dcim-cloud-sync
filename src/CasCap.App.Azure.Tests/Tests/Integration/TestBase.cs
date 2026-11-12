@@ -1,6 +1,6 @@
 using System.Net.Sockets;
 
-namespace DcimCloudSync.Tests.Integration;
+namespace CasCap.Tests.Integration;
 
 /// <summary>
 /// Provides a disposable Azurite container, or skips the test when storage is not reachable.

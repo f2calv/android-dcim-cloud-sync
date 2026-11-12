@@ -1,8 +1,8 @@
 using System.Globalization;
 using System.Text;
-using DcimCloudSync.Abstractions;
+using CasCap.Abstractions;
 
-namespace DcimCloudSync.Tests;
+namespace CasCap.Tests;
 
 /// <summary>
 /// Serves in-memory items stamped with an increasing version, so tests can list only the items changed since a token.

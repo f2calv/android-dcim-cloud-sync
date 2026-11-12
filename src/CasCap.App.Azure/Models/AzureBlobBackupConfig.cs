@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace DcimCloudSync.Models;
+namespace CasCap.Models;
 
 /// <summary>
 /// Configures the Azure Blob Storage backup destination.

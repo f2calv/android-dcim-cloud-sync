@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Tests;
+namespace CasCap.Tests;
 
 /// <summary>
 /// Builds synthetic media items for tests.

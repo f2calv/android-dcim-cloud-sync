@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Models;
+namespace CasCap.Models;
 
 /// <summary>
 /// The backup settings a user enters on the device.

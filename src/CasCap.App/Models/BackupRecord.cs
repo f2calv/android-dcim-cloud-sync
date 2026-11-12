@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Models;
+namespace CasCap.Models;
 
 /// <summary>
 /// Describes an existing backup of a media item.

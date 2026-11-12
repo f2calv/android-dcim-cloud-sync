@@ -1,6 +1,6 @@
 using Microsoft.Maui.Storage;
 
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Keeps the incremental backup checkpoint in MAUI <see cref="IPreferences"/>.

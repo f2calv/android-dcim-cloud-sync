@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Exceptions;
+namespace CasCap.Exceptions;
 
 /// <summary>
 /// Reports that a media item's content changed between hashing it and backing it up.

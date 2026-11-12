@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Models;
+namespace CasCap.Models;
 
 /// <summary>
 /// Configures how backup runs compare items with their existing backups.

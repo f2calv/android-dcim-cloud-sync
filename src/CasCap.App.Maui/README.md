@@ -1,4 +1,4 @@
-# DcimCloudSync
+# CasCap.App.Maui
 
 The .NET MAUI application project for Android DCIM Cloud Sync. Android is the product platform; the
 Windows target exists only for debugging services on a workstation.
@@ -41,12 +41,12 @@ permission, and the **Settings** switch for automatic backup schedules backgroun
 | [`PreferencesBackupCheckpointStore`](Services/PreferencesBackupCheckpointStore.cs) | Keeps the incremental backup checkpoint in MAUI `Preferences` |
 | [`PreferencesConfigurationProvider`](Services/PreferencesConfigurationProvider.cs) | Exposes the saved settings as configuration keys |
 
-The media and backup contracts and services come from [DcimCloudSync.Core](../DcimCloudSync.Core/README.md),
-and both targets use the [Azure destination](../DcimCloudSync.Storage.Azure/README.md).
+The media and backup contracts and services come from [CasCap.App](../CasCap.App/README.md),
+and both targets use the [Azure destination](../CasCap.App.Azure/README.md).
 
 ## Platforms and Permissions
 
-The [project definition](DcimCloudSync.csproj) always targets `net10.0-android`, minimum Android API
+The [project definition](CasCap.App.Maui.csproj) always targets `net10.0-android`, minimum Android API
 33 (Android 13). It does not set a target SDK API explicitly; that is resolved by the installed
 Android workload. When the build runs on Windows, it also targets `net10.0-windows10.0.19041.0`,
 minimum Windows 10 version 1809 (`10.0.17763.0`), as an unpackaged app (`WindowsPackageType=None`)
@@ -112,7 +112,7 @@ On Windows, environment variables prefixed `DcimCloudSync__` are added to config
 `DcimCloudSync__FileSystemMediaSource__RootPath` overrides the scanned folder, which defaults to
 `DcimCloudSync` inside the user's Pictures folder. Setting
 `DcimCloudSync__AzureBlobBackup__ConnectionString` enables **Back up**; the
-[Azure destination README](../DcimCloudSync.Storage.Azure/README.md#configuration) lists the other
+[Azure destination README](../CasCap.App.Azure/README.md#configuration) lists the other
 keys. Data-annotation validation runs when an operation first reads a value, because MAUI has no host
 start to trigger `ValidateOnStart`.
 
@@ -130,8 +130,8 @@ The [central package versions](../../Directory.Packages.props) supply these dire
 
 | Project reference | Use |
 | --- | --- |
-| [DcimCloudSync.Core](../DcimCloudSync.Core/DcimCloudSync.Core.csproj) | Media and backup contracts, folder media source, scan and backup services |
-| [DcimCloudSync.Storage.Azure](../DcimCloudSync.Storage.Azure/DcimCloudSync.Storage.Azure.csproj) | Azure Blob Storage backup destination |
+| [CasCap.App](../CasCap.App/CasCap.App.csproj) | Media and backup contracts, folder media source, scan and backup services |
+| [CasCap.App.Azure](../CasCap.App.Azure/CasCap.App.Azure.csproj) | Azure Blob Storage backup destination |
 
 The project is not packable as a NuGet library. Device behavior and accessibility require separate
 interactive validation.

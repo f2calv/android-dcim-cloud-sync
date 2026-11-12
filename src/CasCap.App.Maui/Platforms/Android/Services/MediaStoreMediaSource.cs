@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Discovers DCIM photos and videos through Android MediaStore and opens their original bytes.

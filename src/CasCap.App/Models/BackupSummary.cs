@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Models;
+namespace CasCap.Models;
 
 /// <summary>
 /// Summarizes a completed backup run without identifying any item.

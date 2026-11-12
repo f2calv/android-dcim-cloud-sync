@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Models;
+namespace CasCap.Models;
 
 /// <summary>
 /// Describes one photo or video discovered by an <see cref="IMediaSource"/>.

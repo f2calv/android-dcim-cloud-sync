@@ -1,4 +1,4 @@
-﻿namespace DcimCloudSync;
+namespace CasCap;
 
 /// <summary>
 /// Provides the application navigation shell: the status page, plus a settings tab where the platform registers one.

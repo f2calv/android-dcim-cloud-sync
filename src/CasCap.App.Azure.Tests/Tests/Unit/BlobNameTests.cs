@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Tests.Unit;
+namespace CasCap.Tests.Unit;
 
 /// <summary>
 /// Tests blob naming in <see cref="AzureBlobBackupDestination"/>; no storage is contacted.

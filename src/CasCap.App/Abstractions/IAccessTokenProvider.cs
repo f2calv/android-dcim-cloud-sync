@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Abstractions;
+namespace CasCap.Abstractions;
 
 /// <summary>
 /// Acquires access tokens for a signed-in user, prompting for sign-in only when no cached token can be renewed.

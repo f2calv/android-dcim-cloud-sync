@@ -1,6 +1,6 @@
-namespace DcimCloudSync.Tests;
+namespace CasCap.Tests;
 
-// TODO: Duplicates DcimCloudSync.Storage.Azure.Tests/Tests/StaticOptionsMonitor.cs. Move both into a shared test-support
+// TODO: Duplicates CasCap.App.Azure.Tests/Tests/StaticOptionsMonitor.cs. Move both into a shared test-support
 // project once a third test project needs it; one small helper does not justify the extra project yet.
 
 /// <summary>

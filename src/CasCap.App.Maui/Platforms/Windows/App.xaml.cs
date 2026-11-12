@@ -1,4 +1,4 @@
-namespace DcimCloudSync.WinUI;
+namespace CasCap.WinUI;
 
 /// <summary>
 /// Hosts the MAUI application in a WinUI process for development on Windows.

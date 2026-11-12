@@ -14,9 +14,9 @@ below is specific to this repository.
 ## Current Baseline
 
 This is a .NET 10 MAUI app with one Shell page. Android is the product platform; a Windows target
-exists only for debugging services on a workstation. `DcimCloudSync.Core` holds the platform-neutral
+exists only for debugging services on a workstation. `CasCap.App` holds the platform-neutral
 media and backup contracts, a folder-backed media source, an inventory scan and a create-only backup
-service. `DcimCloudSync.Storage.Azure` implements the backup destination with Azure Blob Storage: a
+service. `CasCap.App.Azure` implements the backup destination with Azure Blob Storage: a
 connection string on Windows, or on Android an MSAL access token for a no-delete role, as decided in
 `docs/adr-0001-device-credentials.md`. On Android, WorkManager runs incremental background backups from
 a MediaStore change checkpoint; there is no per-item queue or local backup state.
@@ -30,7 +30,7 @@ a MediaStore change checkpoint; there is no per-item queue or local backup state
 - Keep the Windows target development-only: add it only when building on Windows and keep it
   unpackaged. CI publishes it only as a short-lived, self-contained test artifact; never release or
   distribute it.
-- Keep Azure SDK and `CasCap.Api.Azure.Storage` references inside `DcimCloudSync.Storage.Azure`.
+- Keep Azure SDK and `CasCap.Api.Azure.Storage` references inside `CasCap.App.Azure`.
   Debug references the sibling `CasCap.Api.Azure` checkout; Release uses the published package.
 - Backups are create-only: never overwrite or delete a blob, and report hash conflicts instead.
 - Integration tests use Azurite from the root `docker-compose.yml` and per-test containers.

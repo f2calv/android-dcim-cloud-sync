@@ -1,8 +1,8 @@
-using DcimCloudSync.Services;
+using CasCap.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Maui.Storage;
 
-namespace DcimCloudSync;
+namespace CasCap;
 
 public static partial class MauiProgram
 {

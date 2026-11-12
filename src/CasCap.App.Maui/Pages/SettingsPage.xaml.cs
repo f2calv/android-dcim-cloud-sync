@@ -1,7 +1,7 @@
 using Microsoft.Maui.Accessibility;
 using Microsoft.Maui.ApplicationModel;
 
-namespace DcimCloudSync.Pages;
+namespace CasCap.Pages;
 
 /// <summary>
 /// Edits the backup settings entered on the device and signs the user out.

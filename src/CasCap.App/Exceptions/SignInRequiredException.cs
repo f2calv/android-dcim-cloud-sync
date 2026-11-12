@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Exceptions;
+namespace CasCap.Exceptions;
 
 /// <summary>
 /// Reports that the destination needs the user to sign in, and no prompt could be shown.

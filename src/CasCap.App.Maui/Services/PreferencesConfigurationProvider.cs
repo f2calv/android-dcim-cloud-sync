@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Maui.Storage;
 
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Exposes a fixed set of configuration keys stored in MAUI <see cref="IPreferences"/>, and reloads them on demand.

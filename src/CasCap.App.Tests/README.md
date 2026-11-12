@@ -1,12 +1,12 @@
-# DcimCloudSync.Core.Tests
+# CasCap.App.Tests
 
-xUnit v3 unit tests for [DcimCloudSync.Core](../DcimCloudSync.Core/README.md), running on
+xUnit v3 unit tests for [CasCap.App](../CasCap.App/README.md), running on
 Microsoft.Testing.Platform. They need no device, Android SDK, network or cloud resources. Each test
 creates its own temporary folder of small synthetic text files with media extensions and deletes it
 afterwards.
 
 ```powershell
-dotnet test --project .\src\DcimCloudSync.Core.Tests\DcimCloudSync.Core.Tests.csproj
+dotnet test --project .\src\CasCap.App.Tests\CasCap.App.Tests.csproj
 ```
 
 ## Tests
@@ -60,4 +60,4 @@ graph TD
 
 | Project reference | Use |
 | --- | --- |
-| [DcimCloudSync.Core](../DcimCloudSync.Core/DcimCloudSync.Core.csproj) | System under test |
+| [CasCap.App](../CasCap.App/CasCap.App.csproj) | System under test |

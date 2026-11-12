@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Exceptions;
+namespace CasCap.Exceptions;
 
 /// <summary>
 /// Reports that a backup destination failed for a reason other than an existing backup.

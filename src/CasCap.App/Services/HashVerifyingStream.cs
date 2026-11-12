@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Passes content through unchanged while hashing it, and fails at the end when the SHA-256 differs from the expected one.

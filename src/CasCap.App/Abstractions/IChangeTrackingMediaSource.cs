@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Abstractions;
+namespace CasCap.Abstractions;
 
 /// <summary>
 /// A media source that can list only the items added or modified since an earlier point, so routine runs avoid reading

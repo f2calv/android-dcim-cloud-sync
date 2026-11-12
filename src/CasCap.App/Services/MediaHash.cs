@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Security.Cryptography;
 
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Streams a media item once to compute its SHA-256 and length.

@@ -1,7 +1,7 @@
 using System.Globalization;
 using Microsoft.Maui.ApplicationModel;
 
-namespace DcimCloudSync.Pages;
+namespace CasCap.Pages;
 
 /// <summary>
 /// Shows the most recent scan and backup events kept on the device.

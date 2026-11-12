@@ -2,12 +2,12 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
-    <RootNamespace>DcimCloudSync</RootNamespace>
+    <RootNamespace>CasCap</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DcimCloudSync.Core\DcimCloudSync.Core.csproj" />
-    <ProjectReference Include="..\DcimCloudSync.Storage.Azure\DcimCloudSync.Storage.Azure.csproj" />
+    <ProjectReference Include="..\CasCap.App\CasCap.App.csproj" />
+    <ProjectReference Include="..\CasCap.App.Azure\CasCap.App.Azure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -15,6 +15,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\DcimCloudSync.Core.Tests\Tests\ChangingMediaSource.cs" Link="Tests\ChangingMediaSource.cs" />
+    <Compile Include="..\CasCap.App.Tests\Tests\ChangingMediaSource.cs" Link="Tests\ChangingMediaSource.cs" />
   </ItemGroup>
 </Project>

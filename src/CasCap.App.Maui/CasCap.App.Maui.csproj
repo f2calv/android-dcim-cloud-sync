@@ -4,7 +4,7 @@
     <!-- Windows is a development target for debugging services without a device; CI and releases stay Android-only. -->
     <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
     <OutputType>Exe</OutputType>
-    <RootNamespace>DcimCloudSync</RootNamespace>
+    <RootNamespace>CasCap</RootNamespace>
     <UseMaui>true</UseMaui>
     <SingleProject>true</SingleProject>
 
@@ -63,7 +63,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DcimCloudSync.Core\DcimCloudSync.Core.csproj" />
-    <ProjectReference Include="..\DcimCloudSync.Storage.Azure\DcimCloudSync.Storage.Azure.csproj" />
+    <ProjectReference Include="..\CasCap.App\CasCap.App.csproj" />
+    <ProjectReference Include="..\CasCap.App.Azure\CasCap.App.Azure.csproj" />
   </ItemGroup>
 </Project>

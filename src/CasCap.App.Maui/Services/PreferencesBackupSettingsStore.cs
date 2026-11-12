@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.Maui.Storage;
 
-namespace DcimCloudSync.Services;
+namespace CasCap.Services;
 
 /// <summary>
 /// Stores device-entered backup settings in MAUI <see cref="IPreferences"/> and applies them through configuration.
@@ -33,7 +33,7 @@ public sealed class PreferencesBackupSettingsStore(
     private const string CheckModeKey = BackupConfig.ConfigurationSectionName + ":" + nameof(BackupConfig.CheckMode);
 
     /// <summary>The configuration keys this store owns.</summary>
-    public static readonly IReadOnlyList<string> Keys =
+    public static readonly string[] Keys =
     [
         TenantIdKey,
         ClientIdKey,

@@ -35,7 +35,7 @@ jobs:
     permissions:
       contents: read
     with:
-      project: src/DcimCloudSync/DcimCloudSync.csproj
+      project: src/CasCap.App.Maui/CasCap.App.Maui.csproj
       app-display-version: ${{ format('{0}.{1}.{2}', needs.versioning.outputs.major, needs.versioning.outputs.minor, needs.versioning.outputs.patch) }}
       app-version-code: ${{ github.run_number }}
 
@@ -46,7 +46,7 @@ jobs:
     permissions:
       contents: read
     with:
-      project: src/DcimCloudSync/DcimCloudSync.csproj
+      project: src/CasCap.App.Maui/CasCap.App.Maui.csproj
       app-display-version: ${{ format('{0}.{1}.{2}', needs.versioning.outputs.major, needs.versioning.outputs.minor, needs.versioning.outputs.patch) }}
       app-version-code: ${{ github.run_number }}
 
@@ -56,9 +56,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - project: src/DcimCloudSync.Core.Tests/DcimCloudSync.Core.Tests.csproj
+          - project: src/CasCap.App.Tests/CasCap.App.Tests.csproj
             storage: false
-          - project: src/DcimCloudSync.Storage.Azure.Tests/DcimCloudSync.Storage.Azure.Tests.csproj
+          - project: src/CasCap.App.Azure.Tests/CasCap.App.Azure.Tests.csproj
             storage: true
     uses: f2calv/gha-workflows/.github/workflows/app-build-dotnet.yml@v1
     permissions:
@@ -82,7 +82,7 @@ jobs:
     permissions:
       contents: read
     with:
-      project: src/DcimCloudSync/DcimCloudSync.csproj
+      project: src/CasCap.App.Maui/CasCap.App.Maui.csproj
       package-format: apk
       sign: true
       version-code-from-clock: true

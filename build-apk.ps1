@@ -10,7 +10,7 @@ $scripts = @(
 )
 $implementation = $scripts | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
 if (-not $implementation) { throw "Build-Apk.ps1 was not found. Link the central skills folder or clone the central repository beside this repository." }
-& $implementation -RepositoryRoot $PSScriptRoot -Project 'src/DcimCloudSync/DcimCloudSync.csproj' `
+& $implementation -RepositoryRoot $PSScriptRoot -Project 'src/CasCap.App.Maui/CasCap.App.Maui.csproj' `
     -KeyAlias 'dcim-sideload' -KeyVaultKeystoreSecret 'dcim-android-sideload-keystore' `
     -KeyVaultPasswordSecret 'dcim-android-sideload-keystore-password' @args
 exit $LASTEXITCODE

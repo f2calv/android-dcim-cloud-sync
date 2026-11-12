@@ -8,10 +8,10 @@
     <Project Path="../CasCap.Api.Azure/src/CasCap.Api.Azure.Storage/CasCap.Api.Azure.Storage.csproj" />
   </Folder>
   <Folder Name="/android-dcim-cloud-sync/">
-    <Project Path="src/DcimCloudSync.Core.Tests/DcimCloudSync.Core.Tests.csproj" />
-    <Project Path="src/DcimCloudSync.Core/DcimCloudSync.Core.csproj" />
-    <Project Path="src/DcimCloudSync.Storage.Azure.Tests/DcimCloudSync.Storage.Azure.Tests.csproj" />
-    <Project Path="src/DcimCloudSync.Storage.Azure/DcimCloudSync.Storage.Azure.csproj" />
-    <Project Path="src/DcimCloudSync/DcimCloudSync.csproj" />
+    <Project Path="src/CasCap.App.Tests/CasCap.App.Tests.csproj" />
+    <Project Path="src/CasCap.App/CasCap.App.csproj" />
+    <Project Path="src/CasCap.App.Azure.Tests/CasCap.App.Azure.Tests.csproj" />
+    <Project Path="src/CasCap.App.Azure/CasCap.App.Azure.csproj" />
+    <Project Path="src/CasCap.App.Maui/CasCap.App.Maui.csproj" />
   </Folder>
 </Solution>

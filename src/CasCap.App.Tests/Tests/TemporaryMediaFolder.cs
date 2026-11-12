@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Tests;
+namespace CasCap.Tests;
 
 /// <summary>
 /// Creates a disposable folder of synthetic media files and a <see cref="FileSystemMediaSource"/> rooted in it.

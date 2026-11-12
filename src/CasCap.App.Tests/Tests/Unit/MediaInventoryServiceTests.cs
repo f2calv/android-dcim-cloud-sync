@@ -1,4 +1,4 @@
-namespace DcimCloudSync.Tests.Unit;
+namespace CasCap.Tests.Unit;
 
 /// <summary>
 /// Tests scan summaries produced by <see cref="MediaInventoryService"/>.

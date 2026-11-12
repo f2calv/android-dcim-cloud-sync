@@ -1,6 +1,6 @@
-using DcimCloudSync.Exceptions;
+using CasCap.Exceptions;
 
-namespace DcimCloudSync.Tests.Unit;
+namespace CasCap.Tests.Unit;
 
 /// <summary>
 /// Tests backup outcomes produced by <see cref="BackupService"/> against an in-memory destination.
