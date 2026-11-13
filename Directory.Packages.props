@@ -16,6 +16,6 @@
     <!-- Pinned to the release whose AndroidX Core and Lifecycle dependencies match those Microsoft.Maui.Controls brings in;
          newer releases fail restore with NU1608. Bump it together with Microsoft.Maui.Controls. -->
     <PackageVersion Include="Xamarin.AndroidX.Work.Runtime" Version="2.10.3" />
-    <PackageVersion Include="xunit.v3" Version="4.0.2" />
+    <PackageVersion Include="xunit.v3" Version="4.0.3" />
   </ItemGroup>
 </Project>
