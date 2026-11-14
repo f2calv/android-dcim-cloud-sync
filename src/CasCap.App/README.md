@@ -101,10 +101,8 @@ The library defines no configuration provider; the host binds the section.
 
 ## Dependencies
 
-| Package | Version | Use |
-| --- | --- | --- |
-| `Microsoft.Extensions.Logging.Abstractions` | `10.0.14` | `ILogger` and source-generated log messages |
-| `Microsoft.Extensions.Options` | `10.0.14` | `IOptions` access to the media source configuration |
+The `net11.0` framework supplies `ILogger`, source-generated log messages and `IOptions`.
+No explicit NuGet references are required for these types.
 
 The [Azure destination](../CasCap.App.Azure/README.md) implements `IBackupDestination`.
 

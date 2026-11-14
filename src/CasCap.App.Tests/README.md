@@ -56,7 +56,7 @@ graph TD
 
 | Package | Version |
 | --- | --- |
-| `xunit.v3` | `4.0.2` |
+| `xunit.v3` | `4.0.3` |
 
 | Project reference | Use |
 | --- | --- |

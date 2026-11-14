@@ -46,9 +46,9 @@ and both targets use the [Azure destination](../CasCap.App.Azure/README.md).
 
 ## Platforms and Permissions
 
-The [project definition](CasCap.App.Maui.csproj) always targets `net10.0-android`, minimum Android API
+The [project definition](CasCap.App.Maui.csproj) always targets `net11.0-android`, minimum Android API
 33 (Android 13). It does not set a target SDK API explicitly; that is resolved by the installed
-Android workload. When the build runs on Windows, it also targets `net10.0-windows10.0.19041.0`,
+Android workload. When the build runs on Windows, it also targets `net11.0-windows10.0.19041.0`,
 minimum Windows 10 version 1809 (`10.0.17763.0`), as an unpackaged app (`WindowsPackageType=None`)
 started through the **Windows Machine** [launch profile](Properties/launchSettings.json). CI builds the
 Android target on Linux and publishes the Windows target on a Windows runner as a self-contained test
@@ -120,13 +120,13 @@ The [central package versions](../../Directory.Packages.props) supply these dire
 
 | Package | Version | Targets | Use |
 | --- | --- | --- | --- |
-| `Microsoft.Maui.Controls` | `10.0.120` | All | MAUI application, Shell and XAML controls |
-| `Microsoft.Extensions.Logging.Debug` | `10.0.14` | All | Debug-build logging provider |
-| `Microsoft.Extensions.Configuration.EnvironmentVariables` | `10.0.14` | Windows | Environment-variable configuration |
-| `Microsoft.Extensions.Options.ConfigurationExtensions` | `10.0.14` | All | Binds the media source, sign-in and backup configuration |
-| `Microsoft.Extensions.Options.DataAnnotations` | `10.0.14` | All | Validates the media source, sign-in and backup configuration |
+| `Microsoft.Maui.Controls` | `11.0.10` | All | MAUI application, Shell and XAML controls |
+| `Microsoft.Extensions.Logging.Debug` | `11.0.0` | All | Debug-build logging provider |
+| `Microsoft.Extensions.Configuration.EnvironmentVariables` | `11.0.0` | Windows | Environment-variable configuration |
+| `Microsoft.Extensions.Options.ConfigurationExtensions` | `11.0.0` | All | Binds the media source, sign-in and backup configuration |
+| `Microsoft.Extensions.Options.DataAnnotations` | `11.0.0` | All | Validates the media source, sign-in and backup configuration |
 | `Microsoft.Identity.Client` | `4.92.0` | Android | MSAL sign-in and token refresh |
-| `Xamarin.AndroidX.Work.Runtime` | `2.10.3` | Android | WorkManager background scheduling; pinned to the AndroidX Core and Lifecycle versions MAUI brings in |
+| `Xamarin.AndroidX.Work.Runtime` | `2.12.0` | Android | WorkManager background scheduling; paired with MAUI's AndroidX Lifecycle 2.11.0.1 dependency line |
 
 | Project reference | Use |
 | --- | --- |

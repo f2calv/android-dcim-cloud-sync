@@ -8,7 +8,7 @@ namespace CasCap.Tests;
 internal sealed class InMemoryBackupDestination : IBackupDestination
 {
     /// <summary>Gets the stored backups by source identity.</summary>
-    public Dictionary<string, StoredBackup> Backups { get; } = new(StringComparer.Ordinal);
+    public Dictionary<string, StoredBackup> Backups { get; } = [with(StringComparer.Ordinal)];
 
     /// <summary>Gets or sets a backup that appears after the first lookup, simulating a concurrent writer.</summary>
     public (string SourceId, string Sha256)? ConcurrentWrite { get; set; }

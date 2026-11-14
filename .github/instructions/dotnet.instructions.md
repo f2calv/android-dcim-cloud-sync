@@ -1,5 +1,5 @@
 ---
-description: '.NET 10 MAUI solution, project, central package management and SDK conventions.'
+description: '.NET 11 MAUI solution, project, central package management and SDK conventions.'
 applyTo: '**/*.csproj,**/*.slnx,**/Directory.Build.props,**/Directory.Packages.props,**/global.json'
 ---
 
@@ -9,12 +9,12 @@ applyTo: '**/*.csproj,**/*.slnx,**/Directory.Build.props,**/Directory.Packages.p
 
 - Let Visual Studio 2026 create the initial .NET MAUI solution and application project.
 - Use `android-dcim-cloud-sync.Debug.slnx` for local development and `android-dcim-cloud-sync.Release.slnx` for published-package validation. Keep repository-owned projects under `src/` and sibling dependency projects in the Debug solution only.
-- Target `net10.0-android` for the product. Add `net10.0-windows10.0.19041.0` only when `IsOSPlatform('windows')`, as an unpackaged development target. Do not add other platform target frameworks unless requested.
+- Target `net11.0-android` for the product. Add `net11.0-windows10.0.19041.0` only when `IsOSPlatform('windows')`, as an unpackaged development target. Keep application-owned core, provider and test projects single-targeted on `net11.0`. Do not add other platform target frameworks unless requested.
 - Keep the MAUI application non-packable. NuGet packaging metadata belongs only in a future reusable library that is intentionally published.
 
 ## Central Build Configuration
 
-- Put shared properties in root `Directory.Build.props`: C# 14, nullable reference types, implicit usings, warnings, deterministic CI builds and non-packable defaults.
+- Put shared properties in root `Directory.Build.props`: C# 15, nullable reference types, implicit usings, warnings, deterministic CI builds and non-packable defaults.
 - Keep individual project files focused on project-specific target frameworks, MAUI settings, Android properties and references.
 - Centralize warning suppressions with an explanatory comment. Do not suppress a warning solely to make a build pass.
 
@@ -26,6 +26,6 @@ applyTo: '**/*.csproj,**/*.slnx,**/Directory.Build.props,**/Directory.Packages.p
 
 ## SDK and Workloads
 
-- Add or update `global.json` only after Visual Studio has selected the installed .NET 10 feature band, then use an explicit roll-forward policy suitable for CI and contributors.
+- Follow the shared stable SDK selection policy: keep `global.json` for `allowPrerelease: false` and the Microsoft.Testing.Platform runner without a stable SDK version or roll-forward pin. Select .NET 11 explicitly in CI and development tooling.
 - Keep MAUI and Android workload requirements aligned between local development and CI.
 - Build the entire solution after refactoring. Do not deploy to an emulator or physical device unless the user requests it.

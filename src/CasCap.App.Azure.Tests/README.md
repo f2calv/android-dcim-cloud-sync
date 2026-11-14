@@ -65,4 +65,4 @@ graph TD
 | --- | --- |
 | [CasCap.App.Azure](../CasCap.App.Azure/README.md) | System under test |
 | [CasCap.App](../CasCap.App/README.md) | Folder media source and backup service for the lifecycle test |
-| `xunit.v3` `4.0.2` | Test framework |
+| `xunit.v3` `4.0.3` | Test framework |

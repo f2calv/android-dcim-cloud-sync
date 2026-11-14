@@ -42,7 +42,7 @@ public sealed class MediaStoreMediaSource(IOptionsMonitor<MediaStoreMediaSourceC
 
     /// <inheritdoc/>
     public IAsyncEnumerable<MediaItem> DiscoverAsync(CancellationToken cancellationToken) =>
-        DiscoverSinceAsync(new Dictionary<string, long>(StringComparer.Ordinal), cancellationToken);
+        DiscoverSinceAsync([with(StringComparer.Ordinal)], cancellationToken);
 
     /// <inheritdoc/>
     public string GetChangeToken()

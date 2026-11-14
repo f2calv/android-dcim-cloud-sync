@@ -13,7 +13,7 @@ below is specific to this repository.
 
 ## Current Baseline
 
-This is a .NET 10 MAUI app with one Shell page. Android is the product platform; a Windows target
+This is a .NET 11 MAUI app with one Shell page. Android is the product platform; a Windows target
 exists only for debugging services on a workstation. `CasCap.App` holds the platform-neutral
 media and backup contracts, a folder-backed media source, an inventory scan and a create-only backup
 service. `CasCap.App.Azure` implements the backup destination with Azure Blob Storage: a
@@ -25,7 +25,7 @@ a MediaStore change checkpoint; there is no per-item queue or local backup state
   Never enable the authentication broker, and never package tenant, client, account or container values.
 
 - Build locally from `android-dcim-cloud-sync.Debug.slnx`, which includes the sibling dependency projects; use `android-dcim-cloud-sync.Release.slnx` for published-package validation. Central SDK, build and package policy lives in the root files.
-- Keep `net10.0-android`, minimum API 33 and application ID
+- Keep `net11.0-android`, minimum API 33 and application ID
   `io.github.f2calv.androiddcimcloudsync`.
 - Keep the Windows target development-only: add it only when building on Windows and keep it
   unpackaged. CI publishes it only as a short-lived, self-contained test artifact; never release or
@@ -40,7 +40,9 @@ a MediaStore change checkpoint; there is no per-item queue or local backup state
   `MANAGE_EXTERNAL_STORAGE`, before the requiring behavior and privacy documentation exist.
 - Background runs must never prompt: wrap them in `InteractiveSignIn.Suppress()` and surface
   `SignInRequiredException` as a notification. Notifications carry counts and sizes only.
-- Bump `Xamarin.AndroidX.Work.Runtime` only together with `Microsoft.Maui.Controls`; a newer WorkManager
+- Keep application-owned core, provider and tests on `net11.0`; they are not independently published libraries.
+- Bump `Xamarin.AndroidX.Work.Runtime` only together with `Microsoft.Maui.Controls`; MAUI `11.0.10`
+  and WorkManager `2.12.0` share the AndroidX Lifecycle `2.11.0.1` dependency line. A newer WorkManager
   pulls AndroidX Lifecycle versions outside MAUI's ranges and restore fails with NU1608.
 - Release builds are trimmed and the app uses the configuration binding source generator. Give bound
   options properties public setters: generated binding silently skips init-only properties. Validate

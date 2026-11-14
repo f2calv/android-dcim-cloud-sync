@@ -1,6 +1,6 @@
 # Android DCIM Cloud Sync
 
-Android DCIM Cloud Sync is a .NET 10 MAUI app, in development preview, that backs up the photos and
+Android DCIM Cloud Sync is a .NET 11 MAUI app, in development preview, that backs up the photos and
 videos on an Android phone to the owner's Azure Blob Storage container. It signs in with the owner's
 Microsoft account, uploads each file once, never overwrites or deletes, and can back up new media in the
 background. Android is the product platform. A Windows target exists so services can be developed and
@@ -66,8 +66,8 @@ connection string. See the [architecture, dependencies and validation flow](docs
 
 ## Local Development
 
-Use a stable .NET SDK compatible with `global.json` (`10.0.403`, with `latestFeature` roll-forward
-and prereleases disabled) and the .NET MAUI Android workload with its matching Android SDK and JDK.
+Use a stable .NET 11 SDK and the .NET MAUI Android workload with its matching Android SDK and JDK.
+`global.json` disables prereleases and selects Microsoft.Testing.Platform without pinning a stable SDK.
 Install the workload from an elevated prompt in the repository root so `global.json` selects the SDK:
 
 ```powershell
@@ -85,7 +85,7 @@ dotnet build .\android-dcim-cloud-sync.Debug.slnx --configuration Debug
 ```
 
 On Windows this builds both the Android and Windows targets; on other operating systems only the
-Android target is built. Release builds use the published `CasCap.Api.Azure.Storage` **2.0.0**,
+Android target is built. Release builds use the published `CasCap.Api.Azure.Storage` **2.1.0**,
 including create-only uploads and metadata lookup; no sibling checkout is required for Release.
 The Release solution contains only this repository's projects and exposes only the Release configuration.
 
@@ -130,7 +130,7 @@ Debug services on Windows first; switch to Android only for a deliberate device 
 
    The [Azure destination README](src/CasCap.App.Azure/README.md#configuration) lists every
    setting. Never point a development build at a production account.
-4. Restart Visual Studio so the app inherits the variables. Select the `net10.0-windows10.0.19041.0`
+4. Restart Visual Studio so the app inherits the variables. Select the `net11.0-windows10.0.19041.0`
    framework and the **Windows Machine** target, then start debugging. The app runs unpackaged.
 5. Select **Scan media** or **Back up**. Debug output shows summaries; it never includes file names or
    paths.
@@ -139,7 +139,7 @@ Debug services on Windows first; switch to Android only for a deliberate device 
 
 Select a compatible Android emulator or a paired device in Visual Studio and deploy interactively, or
 from the command line with
-`dotnet build .\src\CasCap.App.Maui\CasCap.App.Maui.csproj -t:Run -f net10.0-android`.
+`dotnet build .\src\CasCap.App.Maui\CasCap.App.Maui.csproj -t:Run -f net11.0-android`.
 An Android emulator avoids enabling developer options on a managed phone. On an emulator, add
 synthetic photos to DCIM by dragging files onto the emulator window or with
 `adb push <file> /sdcard/DCIM/Camera/`, then rescan them with
