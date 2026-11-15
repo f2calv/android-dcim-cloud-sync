@@ -60,9 +60,10 @@ with short-lived tokens and a no-delete role as decided in
 | --- | --- | --- |
 | [CasCap.App](../CasCap.App/README.md) | All | Backup contract, models and exception |
 | `CasCap.Api.Azure.Storage` project in a sibling `CasCap.Api.Azure` checkout | Debug | Create-only uploads and metadata reads |
-| `CasCap.Api.Azure.Storage` 2.0.0 package | Release | Published create-only uploads and metadata reads |
-| `Microsoft.Extensions.Options` | All | `IOptionsMonitor` configuration access |
+| `CasCap.Api.Azure.Storage` 2.1.0 package | Release | Published create-only uploads and metadata reads |
 
-Release builds restore `CasCap.Api.Azure.Storage` 2.0.0, which contains `UploadBlobIfNotExistsAsync`
+The `net11.0` framework supplies `IOptionsMonitor`; it needs no explicit package reference.
+
+Release builds restore `CasCap.Api.Azure.Storage` 2.1.0, which contains `UploadBlobIfNotExistsAsync`
 and `GetBlobMetadataAsync`; Debug retains the sibling-source substitution. The library also brings
 the Azure Queue and Table SDKs. This project is not packable and publishes no separate NuGet package.

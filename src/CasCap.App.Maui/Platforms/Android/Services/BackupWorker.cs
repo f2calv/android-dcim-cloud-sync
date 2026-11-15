@@ -51,18 +51,21 @@ public sealed class BackupWorker : Worker
     /// <inheritdoc/>
     public override Result DoWork()
     {
+        if (InputData is not { } inputData || ApplicationContext is not { } context)
+            return Result.InvokeRetry()!;
+
         var outcome = IPlatformApplication.Current?.Services.GetService<BackgroundBackupRunner>() is { } runner
             ? runner.RunAsync(RunAttemptCount, _stopping.Token).GetAwaiter().GetResult()
             : BackgroundBackupOutcome.Retry;
 
-        if (InputData.GetString(TriggerKey) != NewMediaTrigger)
+        if (inputData.GetString(TriggerKey) != NewMediaTrigger)
             return outcome == BackgroundBackupOutcome.Retry ? Result.InvokeRetry()! : Result.InvokeSuccess()!;
 
         if (outcome == BackgroundBackupOutcome.Retry)
-            WorkManagerBackupScheduler.EnqueueRetry(ApplicationContext);
+            WorkManagerBackupScheduler.EnqueueRetry(context);
 
         // Replaces, and so cancels, this request; its result is no longer needed once the run is over.
-        WorkManagerBackupScheduler.RearmNewMediaTrigger(ApplicationContext);
+        WorkManagerBackupScheduler.RearmNewMediaTrigger(context);
         return Result.InvokeSuccess()!;
     }
 

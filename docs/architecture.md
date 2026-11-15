@@ -36,7 +36,7 @@ graph LR
     App -->|Android only| Msal["Microsoft.Identity.Client"]
     App -->|Android only| Work["Xamarin.AndroidX.Work.Runtime"]
     Azure --> Core
-    Azure -->|Release package; Debug sibling source| Library["CasCap.Api.Azure.Storage 2.0.0"]
+    Azure -->|Release package; Debug sibling source| Library["CasCap.Api.Azure.Storage 2.1.0"]
     CoreTests["CasCap.App.Tests"] --> Core
     AzureTests["CasCap.App.Azure.Tests"] --> Azure
     AzureTests --> Core

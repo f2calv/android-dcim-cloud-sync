@@ -7,7 +7,7 @@ applyTo: '**/*.cs'
 
 ## Style
 
-- Follow `.editorconfig`: 4-space indentation, LF line endings, file-scoped namespaces, Allman braces, alphabetical using directives, nullable reference types and C# 14.
+- Follow `.editorconfig`: 4-space indentation, LF line endings, file-scoped namespaces, Allman braces, alphabetical using directives, nullable reference types and C# 15.
 - Prefer `var` when the type is apparent from the right-hand side.
 - Prefer primary constructors for dependency-injected types. Order injected parameters as logger, options, then application services.
 - Mark concrete classes `sealed` unless inheritance is an intentional, documented extension point.
